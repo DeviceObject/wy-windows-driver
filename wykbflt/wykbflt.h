@@ -62,7 +62,7 @@ NTSTATUS KBFAddDevice(IN PDRIVER_OBJECT aDriverObject, IN PDEVICE_OBJECT aPhysic
 
 VOID KBFDriverUnload(IN PDRIVER_OBJECT aDriverObject);
 
-NTSTATUS KBFInitDeviceExtension(IN DEVICE_EXTENSION aDeviceExtension,
+NTSTATUS KBFInitDeviceExtension(IN PDEVICE_EXTENSION aDeviceExtension,
 								IN PDEVICE_OBJECT aFilterDeviceObject,
 								IN PDEVICE_OBJECT aTargetDeviceObject,
 								IN PDEVICE_OBJECT aLowerDeviceObject);
@@ -78,6 +78,9 @@ NTSTATUS KBFReadDispatchRoutine(IN PDEVICE_OBJECT aDeviceObject, IN PIRP aIrp);
 // READÍê³Éº¯Êý
 NTSTATUS KBFReadCompleteRoutine(IN PDEVICE_OBJECT aDeviceObjec, IN PIRP aIrp, IN PVOID aContext);
 
+#ifdef __cplusplus
+extern "C"
+#endif
 NTSTATUS ObReferenceObjectByName(PUNICODE_STRING ObjectName,
 								 ULONG Attributes,
 								 PACCESS_STATE AccessState,

@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ctx", "ctx\ctx.vcproj", "{4
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wykbflt", "wykbflt\wykbflt.vcproj", "{29EA2A0A-14B1-475A-8C33-02CCC19D4248}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wycomflt", "wycomflt\wycomflt.vcproj", "{61AFC030-B950-4664-833C-D8CC9C1DC8FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -43,6 +45,10 @@ Global
 		{29EA2A0A-14B1-475A-8C33-02CCC19D4248}.Debug|Win32.Build.0 = Debug|Win32
 		{29EA2A0A-14B1-475A-8C33-02CCC19D4248}.Release|Win32.ActiveCfg = Release|Win32
 		{29EA2A0A-14B1-475A-8C33-02CCC19D4248}.Release|Win32.Build.0 = Release|Win32
+		{61AFC030-B950-4664-833C-D8CC9C1DC8FC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{61AFC030-B950-4664-833C-D8CC9C1DC8FC}.Debug|Win32.Build.0 = Debug|Win32
+		{61AFC030-B950-4664-833C-D8CC9C1DC8FC}.Release|Win32.ActiveCfg = Release|Win32
+		{61AFC030-B950-4664-833C-D8CC9C1DC8FC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

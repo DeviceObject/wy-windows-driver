@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="wykbflt"
-	ProjectGUID="{29EA2A0A-14B1-475A-8C33-02CCC19D4248}"
-	RootNamespace="wykbflt"
+	Name="wycomflt"
+	ProjectGUID="{61AFC030-B950-4664-833C-D8CC9C1DC8FC}"
+	RootNamespace="wycomflt"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -42,9 +42,9 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(WDKROOT)\inc\api&quot;;&quot;$(WDKROOT)\inc\ddk&quot;;&quot;$(WDKROOT)\inc\crt&quot;"
 				PreprocessorDefinitions="WIN32=100;_X86_=1;DBG=1"
-				MinimalRebuild="false"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="0"
-				RuntimeLibrary="1"
+				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -52,7 +52,6 @@
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="1"
 				CallingConvention="2"
-				CompileAs="2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -189,7 +188,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\wykbflt.cpp"
+				RelativePath=".\wycomflt.cpp"
 				>
 			</File>
 		</Filter>
@@ -203,7 +202,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wykbflt.h"
+				RelativePath=".\wycomflt.h"
 				>
 			</File>
 		</Filter>
@@ -213,12 +212,12 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\wykbflt.rc"
+				RelativePath=".\wycomflt.rc"
 				>
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\wykbflt.inf"
+			RelativePath=".\wycomflt.inf"
 			>
 		</File>
 	</Files>
