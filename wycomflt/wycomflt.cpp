@@ -53,7 +53,7 @@ NTSTATUS CFTAttachDevice(PDRIVER_OBJECT aDriverObject, PDEVICE_OBJECT aOldDevice
 	NTSTATUS status = STATUS_SUCCESS;
 	PDEVICE_OBJECT topDeviceObject = NULL;
 
-	// 生成设备并绑定
+	// 生成过滤层设备对象并绑定
 	status = IoCreateDevice(aDriverObject, 0, NULL, aOldDeviceObject->DeviceType, 0, FALSE, aFilterDeviceObject);
 
 	if (!NT_SUCCESS(status))
@@ -113,8 +113,8 @@ VOID CFPUnloadDriver(PDRIVER_OBJECT aDriverObject)
 {
 	ULONG i = 0;
 	LARGE_INTEGER interval;
-	interval.LowPart = 0;
-	interval.HighPart = 0;
+	//interval.LowPart = 0;
+	//interval.HighPart = 0;
 
 	// 首先解除绑定
 	for (i = 0; i < CFT_MAX_COM_ID; ++i)
@@ -196,10 +196,11 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT aDriverObject, PUNICODE_STRING aRegisterPath
 	size_t i = 0;
 
 	// 所有分发函数都设置为默认的
+	// 在CFTDefaultDispatch()中，由它来派发不同的IRP请求。实际上其内容可分给相应的函数处理。
 	for (i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; ++i)
 		aDriverObject->MajorFunction[i] = CFTDefaultDispatch;
 
-	// 支持动态卸载
+	// 定义卸载函数，支持动态卸载
 	aDriverObject->DriverUnload = CFPUnloadDriver;
 
 	// 绑定所有串口

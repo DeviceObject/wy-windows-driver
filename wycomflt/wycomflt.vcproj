@@ -217,6 +217,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\readme.txt"
+			>
+		</File>
+		<File
 			RelativePath=".\wycomflt.inf"
 			>
 		</File>
