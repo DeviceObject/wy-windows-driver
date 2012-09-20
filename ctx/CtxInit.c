@@ -676,8 +676,8 @@ CtxInstanceSetupCleanup:
     //  FltReleaseContext decrements the ref count by one.
     //
     //  When FltSetInstanceContext succeeds, calling FltReleaseContext will
-    //  leave the context with a ref count of 1 corresponding to the internal
-    //  reference to the context from the file system structures
+    //  leave（离开/委托） the context with a ref count of 1 corresponding to the internal
+    //  reference to the context from the file system structures（文件系统结构上下文）
     //
     //  When FltSetInstanceContext fails, calling FltReleaseContext will
     //  leave the context with a ref count of 0 which is correct since
