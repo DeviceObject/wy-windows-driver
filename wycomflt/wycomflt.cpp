@@ -131,7 +131,7 @@ VOID CFPUnloadDriver(PDRIVER_OBJECT aDriverObject)
 	for (i = 0; i < CFT_MAX_COM_ID; ++i)
 	{
 		if (global_FileDevice[i] != NULL)
-			IoDetachDevice(global_FileDevice[i]);
+			IoDeleteDevice(global_FileDevice[i]);	// 这里造成蓝屏
 	}
 
 	return ;

@@ -30,7 +30,7 @@ extern "C"
 #define PAGEDCODE code_seg("PAGE")
 
 // 定义一些常量
-#define KBD_DRIVER_NAME L"\\Driver\\Kbdclass"
+#define KBD_DRIVER_NAME L"\\Driver\\kbdclass"
 
 #define  DELAY_ONE_MICROSECOND  (-10)
 #define  DELAY_ONE_MILLISECOND (DELAY_ONE_MICROSECOND*1000)
@@ -55,6 +55,7 @@ PDRIVER_OBJECT gDriverObject = NULL;
 // 这里是一些程序的定义
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT aDriverObject, IN PUNICODE_STRING aRegistryPath);
 
@@ -78,9 +79,8 @@ NTSTATUS KBFReadDispatchRoutine(IN PDEVICE_OBJECT aDeviceObject, IN PIRP aIrp);
 // READ完成函数
 NTSTATUS KBFReadCompleteRoutine(IN PDEVICE_OBJECT aDeviceObjec, IN PIRP aIrp, IN PVOID aContext);
 
-#ifdef __cplusplus
-extern "C"
-#endif
+// 这个系统没有明确的指出其接口，但实际是存在的，只需要在此声明一下
+NTKERNELAPI 
 NTSTATUS ObReferenceObjectByName(PUNICODE_STRING ObjectName,
 								 ULONG Attributes,
 								 PACCESS_STATE AccessState,
@@ -90,5 +90,13 @@ NTSTATUS ObReferenceObjectByName(PUNICODE_STRING ObjectName,
 								 PVOID ParseContext,
 								 PVOID *Object);
 
+POBJECT_TYPE IoDeviceObjectType;
+
 // 绑定我们需要的设备
-NTSTATUS KBFAttachDevices(IN PDRIVER_OBJECT aDriverObject, IN PUNICODE_STRING aRegistryPath); 
+//NTSTATUS KBFAttachDevices(IN PDRIVER_OBJECT aDriverObject, IN PUNICODE_STRING aRegistryPath);
+
+NTSTATUS KBFAttachDevicesEx(IN PDRIVER_OBJECT aDriverObject, IN PUNICODE_STRING aRegistryPath);
+
+#ifdef __cplusplus
+}
+#endif

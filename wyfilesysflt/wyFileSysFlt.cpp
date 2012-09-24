@@ -13,7 +13,7 @@ GLOBAL_DATA globalData;
 // 
 // 一些文字声明
 #ifdef ALLOC_PRAGMA
-#pragma alloc_text(INIT, DriverEntry)
+#pragma alloc_text(INIT, DriverEntry)	// 启动时引起了page_fault_in_nonpaged_area蓝屏，这里调整为分页内存试试
 #pragma alloc_text(PAGE, DriverUnload)
 #pragma alloc_text(PAGE, DriverInstanceSetup)
 #pragma alloc_text(PAGE, DriverInstanceQueryTeardown)
@@ -229,7 +229,7 @@ NTSTATUS DriverInstanceSetup(__in PCFLT_RELATED_OBJECTS FltObjects, __in FLT_INS
 	instanceContext->iInstance = FltObjects->Instance;
 
 	// 设置实例上下文
-	DbgPrint("wyFileSysFlt.sys : DriverInstanceSetup -> Setting instance context %p for volume %wZ (Volume = %p, Instance = %p)\n",
+	DbgPrint("wyFileSysFlt.sys : DriverInstanceSetup -> Setting instance context %p for volume \"%wZ\" (Volume = %p, Instance = %p)\n",
 		instanceContext, &instanceContext->iVolumeName, FltObjects->Volume, FltObjects->Instance);
 
 	status = FltSetInstanceContext(FltObjects->Instance, FLT_SET_CONTEXT_KEEP_IF_EXISTS, instanceContext, NULL);
@@ -287,11 +287,7 @@ NTSTATUS DriverInstanceQueryTeardown(__in PCFLT_RELATED_OBJECTS FltObjects, __in
 
 	PAGED_CODE();
 
-	DbgPrint("wyFileSysFlt.sys : DriverInstanceQueryTeardown -> Instance query teardown started (Instance = %p)\n",
-		FltObjects->Instance);
-
-	DbgPrint("wyFileSysFlt.sys : DriverInstanceQueryTeardown -> Instance query teardown ended (Instance = %p)\n",
-		FltObjects->Instance);
+	// Do Nothing ...
 
 	return STATUS_SUCCESS;
 }
@@ -309,11 +305,7 @@ VOID DriverInstanceTeardownStart(__in PCFLT_RELATED_OBJECTS FltObjects, __in FLT
 
 	PAGED_CODE();
 
-	DbgPrint("wyFileSysFlt.sys : DriverInstanceTeardownStart -> Instance teardown start started (Instance = %p)\n",
-		FltObjects->Instance);
-
-	DbgPrint("wyFileSysFlt.sys : DriverInstanceTeardownStart -> Instance teardown start started (Instance = %p)\n",
-		FltObjects->Instance);
+	// Do Nothing ...
 
 	return ;
 }
@@ -370,9 +362,7 @@ FLT_PREOP_CALLBACK_STATUS FSFPreCreate(__inout PFLT_CALLBACK_DATA Data, __in PCF
 
 	PAGED_CODE();
 
-	DbgPrint("wyFileSysFlt.sys : FSFPreCreate -> Enter (Cbd = %p, FileObject = %p)\n", Data, FltObjects->FileObject);
-
-	DbgPrint("wyFileSysFlt.sys : FSFPreCreate -> Exit (Cbd = %p, FileObject = %p)\n", Data, FltObjects->FileObject);
+	// Do nothing ...
 
 	// 前操作成功，需要后操作回调
 	// 关于相关上下文的事情放在打开后操作里面处理
@@ -397,35 +387,29 @@ FLT_POSTOP_CALLBACK_STATUS FSFPostCreate(__inout PFLT_CALLBACK_DATA Data, __in P
 
 	PAGED_CODE();
 
-	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Enter (Data = %p, FileObject = %p)\n", Data, FltObjects->FileObject);
-
-	// 如果在前面执行真实的打开操作时失败了则直接返回
-	if (!NT_SUCCESS(Data->IoStatus.Status))
-	{
-		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> The real create is failed (FileName = %wZ).\n", &FltObjects->FileObject->FileName);
-		goto FsfPostCreateCleanup;
-	}
-
 	// 获取文件名
 	status = FltGetFileNameInformation(Data, FLT_FILE_NAME_NORMALIZED |	FLT_FILE_NAME_QUERY_DEFAULT, &fileNameInfo);
 	if (!NT_SUCCESS(status))
 	{
-		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Failed to get name information (Data = %p, FileObject = %p)\n", Data, FltObjects->FileObject);
 		goto FsfPostCreateCleanup;
 	}
+
+	// 如果在前面执行真实的打开操作时失败了则直接返回
+	if (!NT_SUCCESS(Data->IoStatus.Status))
+	{
+		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> 打开 \"%wZ\" 失败！错误码：0x%x\n", &fileNameInfo->Name, Data->IoStatus.Status);
+		goto FsfPostCreateCleanup;
+	}
+
+	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> 打开 \"%wZ\" 成功！\n", &fileNameInfo->Name);
 
 	// 查找或者创建流上下文
 	status = FSFCreateOrFindStreamContext(Data, TRUE, &streamContext, &streamContextCreated);
 	if (!NT_SUCCESS(status))
 	{
 		// 这个失败很有可能是因为这个对象不支持流上下文而我们分派想一个上下文给他，或者这个对象已经被删除了
-
-		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Failed to find or create stream context (Data = %p, FileObject = %p)\n", Data, FltObjects->FileObject);
 		goto FsfPostCreateCleanup;
 	}
-
-	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Getting/Creating stream context for file %wZ (Data = %p, FileObject = %p, StreamContext = %p. StreamContextCreated = %x)\n",
-		&fileNameInfo->Name, Data, FltObjects->FileObject, streamContext, streamContextCreated);
 
 	// 获取上下文的写权限(获取上下文资源锁)
 	CtxAcquireResourceExclusive(streamContext->iLockResource);
@@ -436,17 +420,11 @@ FLT_POSTOP_CALLBACK_STATUS FSFPostCreate(__inout PFLT_CALLBACK_DATA Data, __in P
 	// 更新上下文内的文件名
 	status = FSFUpdateNameInStreamContext(&fileNameInfo->Name, streamContext);
 
-	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Stream context info for file %wZ (Data = %p, FileObject = %p, StreamContext = %p) \n\tName = %wZ \n\tCreateCount = %x \n\tCleanupCount = %x, \n\tCloseCount = %x\n",
-		&fileNameInfo->Name, Data, FltObjects->FileObject, streamContext, &streamContext->iFileName, streamContext->iCreateCount,
-		streamContext->iCleanupCount, streamContext->iCloseCount);
-
 	// 释放上下文的写权限(释放上下文资源锁)
 	CtxReleaseResource(streamContext->iLockResource);
 
 	if (!NT_SUCCESS(status))
 	{
-		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Failed to update name in stream context for file %wZ (Data = %p, FileObject = %p)\n",
-			&fileNameInfo->Name, Data, FltObjects->FileObject);
 		goto FsfPostCreateCleanup;
 	}
 
@@ -454,13 +432,8 @@ FLT_POSTOP_CALLBACK_STATUS FSFPostCreate(__inout PFLT_CALLBACK_DATA Data, __in P
 	status = FSFCreateOrReplaceStreamHandleContext(Data, TRUE, &streamHandleContext, &streamHandleReplaced);
 	if (!NT_SUCCESS(status))
 	{
-		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Failed to find or create stream handle context (Data = %p, FileObject = %p)\n",
-			Data, FltObjects->FileObject);
 		goto FsfPostCreateCleanup;
 	}
-
-	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Creating/Replacing stream handle context for file %wZ (Data = %p, FileObject = %p StreamHandleContext = %p, StreamHandleContextReplaced = %x)\n",
-		&fileNameInfo->Name, Data, FltObjects->FileObject, streamHandleContext, streamHandleReplaced);
 
 	// 
 	CtxAcquireResourceExclusive(streamHandleContext->iLockResource);
@@ -468,15 +441,10 @@ FLT_POSTOP_CALLBACK_STATUS FSFPostCreate(__inout PFLT_CALLBACK_DATA Data, __in P
 	// 更新上下文中的数据
 	status = FSFUpdateNameInStreamHandleContxt(&fileNameInfo->Name, streamHandleContext);
 
-	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Stream handle context info for file %wZ (Data = %p, FileObject = %p, StreamHandleContext = %p) \n\tName = %wZ\n",
-		&fileNameInfo->Name, Data, FltObjects->FileObject, streamHandleContext, &streamHandleContext->iFileName);
-
 	CtxReleaseResource(streamHandleContext->iLockResource);
 
 	if (!NT_SUCCESS(status))
 	{
-		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Failed to update name in stream handle context for file %wZ (Data = %p, FileObject = %p)\n",
-			&fileNameInfo->Name, Data, FltObjects->FileObject);
 		goto FsfPostCreateCleanup;
 	}
 
@@ -486,20 +454,12 @@ FLT_POSTOP_CALLBACK_STATUS FSFPostCreate(__inout PFLT_CALLBACK_DATA Data, __in P
 	fileName.Length = fileNameInfo->Name.Length - fileNameInfo->Stream.Length;
 	fileName.MaximumLength = fileName.Length;
 
-	// 查找或创建一个文件上下文
+	// Vista或以上版本的操作系统执行以下代码
 	status = FSFFindOrCreateFileContext(Data, TRUE, &fileName, &fileContext, &fileContextCreated);
 	if (!NT_SUCCESS(status))
 	{
-		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Failed to find or create file context (Data = %p, FileObject = %p)\n",
-			Data, FltObjects->FileObject);
 		goto FsfPostCreateCleanup;
 	}
-
-	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Getting/Creating file context for file %wZ (Data = %p, FileObject = %p, FileContext = %p. FileContextCreated = %x)\n",
-		&fileNameInfo->Name, Data, FltObjects->FileObject, fileContext, fileContextCreated);
-
-	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> File context info for file %wZ (Data = %p, FileObject = %p, FileContext = %p) \n\tName = %wZ\n",
-		&fileNameInfo->Name, Data, FltObjects->FileObject, fileContext, &fileContext->iFileName);
 
 FsfPostCreateCleanup:
 
@@ -515,14 +475,6 @@ FsfPostCreateCleanup:
 
 	if (streamHandleContext != NULL)
 		FltReleaseContext(streamHandleContext);
-
-	if (!NT_SUCCESS(status))
-	{
-		DbgPrint("wyFileSysFlt.sys : FSFPostCreate ->  Failed with status 0x%x \n", status);
-	}
-
-	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> Exit (Data = %p, FileObject = %p, Status = 0x%x)\n",
-		Data, FltObjects->FileObject, Data->IoStatus.Status);
 
 	return FLT_POSTOP_FINISHED_PROCESSING;
 }
@@ -555,28 +507,16 @@ FLT_PREOP_CALLBACK_STATUS FSFPreCleanup(__inout PFLT_CALLBACK_DATA Data, __in PC
 
 	PAGED_CODE();
 
-	DbgPrint("wyFileSysFlt.sys : FSFPreCleanup -> Enter (Cbd = %p, FileObject = %p)\n", Data, FltObjects->FileObject);
-
 	// 获取流上下文（注意，这里不创建）
 	status = FSFCreateOrFindStreamContext(Data, FALSE, &streamContext, &streamContextCreated);
 	if (!NT_SUCCESS(status))
 	{
-		DbgPrint("wyFileSysFlt.sys : FSFPreCleanup -> Failed to find stream context (Cbd = %p, FileObject = %p)\n",	Data, FltObjects->FileObject);
 		goto FsfPreCleanup;
 	}
 
-	DbgPrint("wyFileSysFlt.sys : FSFPreCleanup -> Getting stream context for file (Cbd = %p, FileObject = %p, StreamContext = %p. StreamContextCreated = %x)\n",
-		Data, FltObjects->FileObject, streamContext, streamContextCreated);
-
 	CtxAcquireResourceExclusive(streamContext->iLockResource);
 
-	DbgPrint("wyFileSysFlt.sys : FSFPreCleanup -> Old info in stream context for file(Cbd = %p, FileObject = %p, StreamContext = %p) \n\tName = %wZ \n\tCreateCount = %x \n\tCleanupCount = %x, \n\tCloseCount = %x\n",
-		Data, FltObjects->FileObject, streamContext, &streamContext->iFileName, streamContext->iCreateCount, streamContext->iCleanupCount, streamContext->iCloseCount);
-
 	++streamContext->iCleanupCount;
-
-	DbgPrint("wyFileSysFlt.sys : FSFPreCleanup -> New info in stream context for file (Cbd = %p, FileObject = %p, StreamContext = %p) \n\tName = %wZ \n\tCreateCount = %x \n\tCleanupCount = %x, \n\tCloseCount = %x\n",
-		Data, FltObjects->FileObject, streamContext, &streamContext->iFileName, streamContext->iCreateCount, streamContext->iCleanupCount, streamContext->iCloseCount);
 
 	CtxReleaseResource(streamContext->iLockResource);
 
@@ -584,8 +524,6 @@ FsfPreCleanup:
 
 	if (streamContext != NULL)
 		FltReleaseContext(streamContext);
-
-	DbgPrint("wyFileSysFlt.sys : FSFPreCleanup -> Exit (Cbd = %p, FileObject = %p)\n", Data, FltObjects->FileObject);
 
 	return FLT_PREOP_SUCCESS_NO_CALLBACK;
 }

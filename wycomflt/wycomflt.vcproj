@@ -42,7 +42,7 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(WDKROOT)\inc\api&quot;;&quot;$(WDKROOT)\inc\ddk&quot;;&quot;$(WDKROOT)\inc\crt&quot;"
 				PreprocessorDefinitions="WIN32=100;_X86_=1;DBG=1"
-				MinimalRebuild="true"
+				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"

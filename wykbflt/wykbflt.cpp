@@ -4,14 +4,23 @@
 #pragma INITCODE
 #ifdef __cplusplus
 extern "C"
+{
 #endif
+#include <ntstrsafe.h>
+#ifdef __cplusplus
+}
+#endif
+
+BOOLEAN g_filterStart = FALSE;
+
+#pragma INITCODE
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT aDriverObject, IN PUNICODE_STRING aRegistryPath)
 {
 	NTSTATUS status = STATUS_SUCCESS;
 	KdPrint(("wykbflt.sys : enter DriverEntry\n"));
 
 	// 初始化所有派遣函数
-	for (int i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; ++i)
+	for (ULONG i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; ++i)
 		aDriverObject->MajorFunction[i] = KBFDefaultIRPDispatchRoutine;
 	
 	// 更改Read派遣函数，通过过滤此IRP获取键盘数据
@@ -26,84 +35,178 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT aDriverObject, IN PUNICODE_STRING aRegist
 
 	// 注意：这里是关键
 	// 绑定所有键盘设备
-	status = KBFAttachDevices(aDriverObject, aRegistryPath);
+	//status = KBFAttachDevices(aDriverObject, aRegistryPath);
+	status = KBFAttachDevicesEx(aDriverObject, aRegistryPath);
 
 	return status;
 }
 
-POBJECT_TYPE IoDriverObjectType;
-NTSTATUS KBFAttachDevices(IN PDRIVER_OBJECT aDriverObject, IN PUNICODE_STRING aRegistryPath)
+//POBJECT_TYPE IoDeviceObjectType;
+//NTSTATUS KBFAttachDevices(IN PDRIVER_OBJECT aDriverObject, IN PUNICODE_STRING aRegistryPath)
+//{
+//	NTSTATUS status = STATUS_SUCCESS;
+//
+//	KdPrint(("wykbflt.sys : KBFAttachDevices\n"));
+//
+//	UNICODE_STRING deviceClassName;
+//	RtlInitUnicodeString(&deviceClassName, KBD_DRIVER_NAME);
+//
+//	PDRIVER_OBJECT KbdDriverObject = NULL; 
+//
+//	// 这句导致蓝屏：0x0000007E - 找不到指定的模块
+//	__try
+//	{
+//		status = ObReferenceObjectByName(&deviceClassName, OBJ_CASE_INSENSITIVE, 
+//			NULL, 0, IoDeviceObjectType, KernelMode, NULL, (PVOID *)&KbdDriverObject);
+//
+//		if (!NT_SUCCESS(status))
+//		{
+//			KdPrint(("wykbflt.sys : KBFAttachDevices Couldn't get the Device Object\n"));
+//			g_filterStart = FALSE;
+//			return status;
+//		}
+//		else
+//		{
+//			// 
+//			ObDereferenceObject(aDriverObject);
+//
+//			g_filterStart = TRUE;
+//		}
+//	}
+//	__except(EXCEPTION_EXECUTE_HANDLER)
+//	{
+//		KdPrint(("wykbflt.sys : KBFAttachDevices failed 0x%x", status));
+//		g_filterStart = FALSE;
+//		return status;
+//	}
+//
+//	PDEVICE_OBJECT pFilterDeviceObject = NULL; 
+//	PDEVICE_OBJECT pTargetDeviceObject = NULL; 
+//	PDEVICE_OBJECT pLowerDeviceObject = NULL;
+//
+//	pTargetDeviceObject = KbdDriverObject->DeviceObject;
+//
+//	while (pTargetDeviceObject)
+//	{
+//		// 生成一个过滤设备
+//		status = IoCreateDevice(aDriverObject, sizeof(DEVICE_EXTENSION), NULL,
+//			pTargetDeviceObject->DeviceType, pTargetDeviceObject->Characteristics,
+//			FALSE, OUT &pFilterDeviceObject);
+//
+//		if (!NT_SUCCESS(status))
+//		{
+//			KdPrint(("wykbflt.sys : KBFAttachDevices Couldn't create the Filter Device Object\n"));
+//			return status;
+//		}
+//
+//		// 绑定。pLowerDeviceObject是底层物理设备
+//		pLowerDeviceObject = IoAttachDeviceToDeviceStack(pFilterDeviceObject, pTargetDeviceObject);
+//
+//		if (!pLowerDeviceObject)
+//		{
+//			KdPrint(("wykbflt.sys : Couldn't attach to Device Object\n"));
+//			IoDeleteDevice(pFilterDeviceObject);
+//			pFilterDeviceObject = NULL;
+//			return status;
+//		}
+//
+//		// 设备扩展
+//		PDEVICE_EXTENSION deviceExtension = (PDEVICE_EXTENSION)pFilterDeviceObject->DeviceExtension;
+//		KBFInitDeviceExtension(deviceExtension, pFilterDeviceObject, pTargetDeviceObject, pLowerDeviceObject);
+//		
+//		// 设置过滤操作
+//		pFilterDeviceObject->DeviceType = pLowerDeviceObject->DeviceType;	// 要过滤的设备类型跟物理设备类型一致
+//		pFilterDeviceObject->Characteristics = pLowerDeviceObject->Characteristics;
+//		pFilterDeviceObject->StackSize = pLowerDeviceObject->StackSize + 1;
+//		pFilterDeviceObject->Flags |= pLowerDeviceObject->Flags & (DO_BUFFERED_IO | DO_DIRECT_IO | DO_POWER_PAGABLE) ;
+//
+//		pTargetDeviceObject = pTargetDeviceObject->NextDevice;
+//	}
+//
+//	return status;
+//}
+
+NTSTATUS KBFAttachDevicesEx(IN PDRIVER_OBJECT aDriverObject, IN PUNICODE_STRING aRegistryPath)
 {
+	UNREFERENCED_PARAMETER(aDriverObject);
+	UNREFERENCED_PARAMETER(aRegistryPath);
+
 	NTSTATUS status = STATUS_SUCCESS;
 
-	KdPrint(("wykbflt.sys : KBFAttachDevices\n"));
+	// 遍历所有键盘设备
+	UNICODE_STRING nameString;
+	static WCHAR name[32] = {0};
+	ULONG index = 0;
+	
+	PDEVICE_OBJECT deviceObject = NULL;
+	PFILE_OBJECT fileObject = NULL;
 
-	UNICODE_STRING deviceClassName;
-	RtlInitUnicodeString(&deviceClassName, KBD_DRIVER_NAME);
+	// 第一个设备
+	RtlZeroMemory(name, sizeof(WCHAR)*32);
+	RtlStringCchPrintfW(name, 32, L"\\Device\\KeyboardClass%d", index);
+	RtlInitUnicodeString(&nameString, name);
 
-	PDRIVER_OBJECT KbdDriverObject = NULL; 
-	status = ObReferenceObjectByName(&deviceClassName, OBJ_CASE_INSENSITIVE, 
-		NULL, 0, IoDriverObjectType, KernelMode, NULL, (PVOID *)&KbdDriverObject);
+	// 打开设备对象
+	status = IoGetDeviceObjectPointer(&nameString, FILE_ALL_ACCESS, &fileObject, &deviceObject);
+	if (NT_SUCCESS(status))
+		ObDereferenceObject(fileObject);
 
-	if (!NT_SUCCESS(status))
+	while (deviceObject != NULL)
 	{
-		KdPrint(("wykbflt.sys : KBFAttachDevices Couldn't get the Device Object\n"));
-		return status;
-	}
-	else
-	{
-		// 
-		ObDereferenceObject(aDriverObject);
-	}
+		PDEVICE_OBJECT pFilterDeviceObject = NULL;
+		PDEVICE_OBJECT pLowerDeviceObject = NULL;
 
-	PDEVICE_OBJECT pFilterDeviceObject = NULL; 
-	PDEVICE_OBJECT pTargetDeviceObject = NULL; 
-	PDEVICE_OBJECT pLowerDeviceObject = NULL;
-
-	pTargetDeviceObject = KbdDriverObject->DeviceObject;
-
-	while (pTargetDeviceObject)
-	{
-		// 生成一个过滤设备
-		status = IoCreateDevice(aDriverObject, sizeof(DEVICE_EXTENSION), NULL,
-			pTargetDeviceObject->DeviceType, pTargetDeviceObject->Characteristics,
-			FALSE, OUT &pFilterDeviceObject);
+		// 创建一个过滤设备
+		status = IoCreateDevice(aDriverObject, sizeof(DEVICE_EXTENSION), NULL, 
+			deviceObject->DeviceType, deviceObject->Characteristics, FALSE, &pFilterDeviceObject);
 
 		if (!NT_SUCCESS(status))
 		{
-			KdPrint(("wykbflt.sys : KBFAttachDevices Couldn't create the Filter Device Object\n"));
-			return status;
+			KdPrint(("wykbflt.sys : KBFAttachDevices Couldn't create the Filter Device Object %d\n", index));
+			break;
 		}
 
-		// 绑定。pLowerDeviceObject是底层物理设备
-		pLowerDeviceObject = IoAttachDeviceToDeviceStack(pFilterDeviceObject, pTargetDeviceObject);
-
+		pLowerDeviceObject = IoAttachDeviceToDeviceStack(pFilterDeviceObject, deviceObject);
 		if (!pLowerDeviceObject)
 		{
 			KdPrint(("wykbflt.sys : Couldn't attach to Device Object\n"));
 			IoDeleteDevice(pFilterDeviceObject);
 			pFilterDeviceObject = NULL;
-			return status;
+			break;
 		}
 
 		// 设备扩展
 		PDEVICE_EXTENSION deviceExtension = (PDEVICE_EXTENSION)pFilterDeviceObject->DeviceExtension;
-		KBFInitDeviceExtension(deviceExtension, pFilterDeviceObject, pTargetDeviceObject, pLowerDeviceObject);
-		
+		KBFInitDeviceExtension(deviceExtension, pFilterDeviceObject, deviceObject, pLowerDeviceObject);
+
 		// 设置过滤操作
 		pFilterDeviceObject->DeviceType = pLowerDeviceObject->DeviceType;	// 要过滤的设备类型跟物理设备类型一致
 		pFilterDeviceObject->Characteristics = pLowerDeviceObject->Characteristics;
 		pFilterDeviceObject->StackSize = pLowerDeviceObject->StackSize + 1;
 		pFilterDeviceObject->Flags |= pLowerDeviceObject->Flags & (DO_BUFFERED_IO | DO_DIRECT_IO | DO_POWER_PAGABLE) ;
 
-		pTargetDeviceObject = pTargetDeviceObject->NextDevice;
+		++index;
+
+		RtlZeroMemory(name, sizeof(WCHAR)*32);
+		RtlStringCchPrintfW(name, 32, L"\\Device\\KeyboardClass%d", index);
+		RtlInitUnicodeString(&nameString, name);
+
+		// 打开设备对象
+		status = IoGetDeviceObjectPointer(&nameString, FILE_ALL_ACCESS, &fileObject, &deviceObject);
+		if (NT_SUCCESS(status))
+			ObDereferenceObject(fileObject);
+		else
+			break;
 	}
 
-	return status;
+	return STATUS_SUCCESS;
 }
 
+#pragma PAGEDCODE
 VOID KBFDetach(IN PDEVICE_OBJECT aDeviceObject)
 {
+	PAGED_CODE();
+
 	PDEVICE_EXTENSION deviceExtension;
 	BOOLEAN NoRequestsOutstanding = FALSE;
 	deviceExtension = (PDEVICE_EXTENSION)aDeviceObject->DeviceExtension;
@@ -131,8 +234,11 @@ VOID KBFDetach(IN PDEVICE_OBJECT aDeviceObject)
 	return ;
 }
 
+#pragma PAGEDCODE
 VOID KBFDriverUnload(IN PDRIVER_OBJECT aDriverObject)
 {
+	PAGED_CODE();
+
 	PDEVICE_OBJECT deviceObject = NULL;
 	PDEVICE_OBJECT oldDeviceObject = NULL;
 	PDEVICE_EXTENSION deviceExtension = NULL;
@@ -140,45 +246,54 @@ VOID KBFDriverUnload(IN PDRIVER_OBJECT aDriverObject)
 	LARGE_INTEGER lDelay;
 	PRKTHREAD currentThread = NULL;
 
-	// delay some time
-	lDelay = RtlConvertLongToLargeInteger(100 * DELAY_ONE_MILLISECOND);
-	currentThread = KeGetCurrentThread();
-
-	// 将当前线程设置为低实时模式，以便让它的运行尽量少影响其他程序
-	KeSetPriorityThread(currentThread, LOW_REALTIME_PRIORITY);
-
-	UNREFERENCED_PARAMETER(aDriverObject);
-	DbgPrint("wykbflt.sys : DriverEntry unloading .\n");
-
-	// 遍历所有设备并一律解除绑定
-	deviceObject = aDriverObject->DeviceObject;
-	while (deviceObject)
+	if (g_filterStart == TRUE)
 	{
-		KBFDetach(deviceObject);
-		deviceObject = deviceObject->NextDevice;
-	}
+		// delay some time
+		lDelay = RtlConvertLongToLargeInteger(100 * DELAY_ONE_MILLISECOND);
+		currentThread = KeGetCurrentThread();
 
-	ASSERT(NULL == aDriverObject->DeviceObject);
+		// 将当前线程设置为低实时模式，以便让它的运行尽量少影响其他程序
+		KeSetPriorityThread(currentThread, LOW_REALTIME_PRIORITY);
 
-	while (gC2pKeyCount)
-	{
-		KeDelayExecutionThread(KernelMode, FALSE, &lDelay);
+		UNREFERENCED_PARAMETER(aDriverObject);
+		DbgPrint("wykbflt.sys : DriverEntry unloading .\n");
+
+		// 遍历所有设备并一律解除绑定
+		deviceObject = aDriverObject->DeviceObject;
+		while (deviceObject)
+		{
+			KBFDetach(deviceObject);
+			deviceObject = deviceObject->NextDevice;
+		}
+
+		ASSERT(NULL == aDriverObject->DeviceObject);
+
+		while (gC2pKeyCount)
+		{
+			KeDelayExecutionThread(KernelMode, FALSE, &lDelay);
+		}
 	}
 
 	DbgPrint("wykbflt.sys : DriverEntry unload ok .\n");
 	return ;
 }
 
+#pragma PAGEDCODE
 NTSTATUS KBFDefaultIRPDispatchRoutine(IN PDEVICE_OBJECT aDeviceObject, IN PIRP aIrp)
 {
+	PAGED_CODE();
+
 	// 直接调用IoCallDriver将IRP发送到后续的设备对象
 	IoSkipCurrentIrpStackLocation(aIrp);
 
 	return IoCallDriver(((PDEVICE_EXTENSION)aDeviceObject->DeviceExtension)->iLowerDeviceObject, aIrp);
 }
 
+#pragma PAGEDCODE
 NTSTATUS KBFPowerDispatchRoutine(IN PDEVICE_OBJECT aDeviceObject, IN PIRP aIrp)
 {
+	PAGED_CODE();
+
 	PDEVICE_EXTENSION deviceExtension;
 	deviceExtension = (PDEVICE_EXTENSION)aDeviceObject->DeviceExtension;
 
@@ -188,8 +303,11 @@ NTSTATUS KBFPowerDispatchRoutine(IN PDEVICE_OBJECT aDeviceObject, IN PIRP aIrp)
 	return PoCallDriver(deviceExtension->iLowerDeviceObject, aIrp);
 }
 
+#pragma PAGEDCODE
 NTSTATUS KBFPnpDispatchRoutine(IN PDEVICE_OBJECT aDeviceObject, IN PIRP aIrp)
 {
+	PAGED_CODE();
+
 	PDEVICE_EXTENSION deviceExtension = NULL;
 	PIO_STACK_LOCATION irpStack = NULL;
 	NTSTATUS status = STATUS_SUCCESS;
@@ -226,8 +344,11 @@ NTSTATUS KBFPnpDispatchRoutine(IN PDEVICE_OBJECT aDeviceObject, IN PIRP aIrp)
 	return status;
 }
 
+#pragma PAGEDCODE
 NTSTATUS KBFReadCompleteRoutine(IN PDEVICE_OBJECT aDeviceObjec, IN PIRP aIrp, IN PVOID aContext)
 {
+	PAGED_CODE();
+
 	PIO_STACK_LOCATION irpStackLocation;
 	ULONG_PTR buflen = 0;
 	PUCHAR buf = NULL;
@@ -258,8 +379,11 @@ NTSTATUS KBFReadCompleteRoutine(IN PDEVICE_OBJECT aDeviceObjec, IN PIRP aIrp, IN
 	return aIrp->IoStatus.Status;
 }
 
+#pragma PAGEDCODE
 NTSTATUS KBFReadDispatchRoutine(IN PDEVICE_OBJECT aDeviceObject, IN PIRP aIrp)
 {
+	PAGED_CODE();
+
 	NTSTATUS status = STATUS_SUCCESS;
 	PDEVICE_EXTENSION deviceExtension = NULL;
 	PIO_STACK_LOCATION currentIrpStack = NULL;
@@ -293,9 +417,12 @@ NTSTATUS KBFReadDispatchRoutine(IN PDEVICE_OBJECT aDeviceObject, IN PIRP aIrp)
 	return IoCallDriver(deviceExtension->iLowerDeviceObject, aIrp);
 }
 
+#pragma PAGEDCODE
 NTSTATUS KBFInitDeviceExtension(IN PDEVICE_EXTENSION aDeviceExtension, IN PDEVICE_OBJECT aFilterDeviceObject,
 								IN PDEVICE_OBJECT aTargetDeviceObject, IN PDEVICE_OBJECT aLowerDeviceObject)
-{ 
+{
+	PAGED_CODE();
+
 	memset(aDeviceExtension, 0, sizeof(DEVICE_EXTENSION)); 
 	aDeviceExtension->iSize = sizeof(DEVICE_EXTENSION); 
 	aDeviceExtension->iFilterDeviceObject = aFilterDeviceObject; 
