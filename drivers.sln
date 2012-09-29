@@ -21,6 +21,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wyVisualCDRom", "wyVisualCD
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wyProcMon", "wyProcMon\wyProcMon.vcproj", "{18A0FAF2-6ABD-4CD4-A2B8-D288CB09E79C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wyProcMonSys", "wyProcMonSys\wyProcMonSys.vcproj", "{FE4122D4-855F-4663-8DF8-857C3DFF51CA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rc4", "rc4\rc4.vcproj", "{A15E3976-047A-4DF1-AA7A-B32BDB083B28}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -67,6 +71,14 @@ Global
 		{18A0FAF2-6ABD-4CD4-A2B8-D288CB09E79C}.Debug|Win32.Build.0 = Debug|Win32
 		{18A0FAF2-6ABD-4CD4-A2B8-D288CB09E79C}.Release|Win32.ActiveCfg = Release|Win32
 		{18A0FAF2-6ABD-4CD4-A2B8-D288CB09E79C}.Release|Win32.Build.0 = Release|Win32
+		{FE4122D4-855F-4663-8DF8-857C3DFF51CA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FE4122D4-855F-4663-8DF8-857C3DFF51CA}.Debug|Win32.Build.0 = Debug|Win32
+		{FE4122D4-855F-4663-8DF8-857C3DFF51CA}.Release|Win32.ActiveCfg = Release|Win32
+		{FE4122D4-855F-4663-8DF8-857C3DFF51CA}.Release|Win32.Build.0 = Release|Win32
+		{A15E3976-047A-4DF1-AA7A-B32BDB083B28}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A15E3976-047A-4DF1-AA7A-B32BDB083B28}.Debug|Win32.Build.0 = Debug|Win32
+		{A15E3976-047A-4DF1-AA7A-B32BDB083B28}.Release|Win32.ActiveCfg = Release|Win32
+		{A15E3976-047A-4DF1-AA7A-B32BDB083B28}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

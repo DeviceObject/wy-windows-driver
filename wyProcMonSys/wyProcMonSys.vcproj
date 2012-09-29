@@ -2,10 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="wyProcMon"
-	ProjectGUID="{18A0FAF2-6ABD-4CD4-A2B8-D288CB09E79C}"
-	RootNamespace="wyProcMon"
-	Keyword="MFCProj"
+	Name="wyProcMonSys"
+	ProjectGUID="{FE4122D4-855F-4663-8DF8-857C3DFF51CA}"
+	RootNamespace="wyProcMonSys"
+	Keyword="Win32Proj"
 	>
 	<Platforms>
 		<Platform
@@ -20,7 +20,6 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			UseOfMFC="1"
 			CharacterSet="1"
 			>
 			<Tool
@@ -37,43 +36,47 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="false"
-				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WDKROOT)\inc\ddk&quot;;&quot;$(WDKROOT)\inc\crt&quot;"
-				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
+				AdditionalIncludeDirectories="&quot;$(WDKROOT)\inc\api&quot;;&quot;$(WDKROOT)\inc\ddk&quot;;&quot;$(WDKROOT)\inc\crt&quot;"
+				PreprocessorDefinitions="WIN32=100;_X86_=1;DBG=1"
+				MinimalRebuild="false"
+				BasicRuntimeChecks="0"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
+				WarnAsError="true"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="4"
+				DebugInformationFormat="1"
 				CallingConvention="2"
+				ErrorReporting="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="2052"
-				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="fltlib.lib"
+				AdditionalDependencies="ntoskrnl.lib Fltmgr.lib hal.lib"
+				OutputFile="$(OutDir)\$(ProjectName).sys"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(WDKROOT)\lib\wxp\i386"
+				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="3"
+				StackReserveSize="400000"
+				StackCommitSize="10000"
+				Driver="1"
+				EntryPointSymbol="DriverEntry"
+				SetChecksum="true"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -106,7 +109,6 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			UseOfMFC="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -124,16 +126,12 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="false"
-				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
-				MinimalRebuild="false"
-				RuntimeLibrary="0"
-				UsePrecompiledHeader="2"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				RuntimeLibrary="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
@@ -143,9 +141,6 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="2052"
-				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -194,31 +189,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\stdafx.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\wyProcMon.cpp"
+				RelativePath=".\Communication.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\wyProcMonDlg.cpp"
+				RelativePath=".\FilterLogical.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\wyProcMonSys.cpp"
 				>
 			</File>
 		</Filter>
@@ -228,19 +207,19 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\Resource.h"
+				RelativePath=".\Communication.h"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\Context.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wyProcMon.h"
+				RelativePath=".\Public.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wyProcMonDlg.h"
+				RelativePath=".\wyProcMonSys.h"
 				>
 			</File>
 		</Filter>
@@ -249,32 +228,12 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
-			<File
-				RelativePath=".\res\toolbar1.bmp"
-				>
-			</File>
-			<File
-				RelativePath=".\res\wyProcMon.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\wyProcMon.rc"
-				>
-			</File>
-			<File
-				RelativePath=".\res\wyProcMon.rc2"
-				>
-			</File>
 		</Filter>
 		<File
-			RelativePath=".\ReadMe.txt"
+			RelativePath=".\wyProcMonSys.inf"
 			>
 		</File>
 	</Files>
 	<Globals>
-		<Global
-			Name="RESOURCE_FILE"
-			Value="wyProcMon.rc"
-		/>
 	</Globals>
 </VisualStudioProject>

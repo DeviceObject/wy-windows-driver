@@ -363,6 +363,16 @@ FLT_PREOP_CALLBACK_STATUS FSFPreCreate(__inout PFLT_CALLBACK_DATA Data, __in PCF
 	PAGED_CODE();
 
 	// Do nothing ...
+	PFLT_FILE_NAME_INFORMATION fileNameInfo = NULL;
+	NTSTATUS status = FltGetFileNameInformation(Data, FLT_FILE_NAME_NORMALIZED |	FLT_FILE_NAME_QUERY_DEFAULT, &fileNameInfo);
+	if (!NT_SUCCESS(status))
+	{
+		return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+	}
+
+	ANSI_STRING astr;
+	RtlUnicodeStringToAnsiString(&astr ,&fileNameInfo->Name, true);
+	DbgPrint("wyFileSysFlt.sys : 即将打开 \"%Z\" \n", &astr);
 
 	// 前操作成功，需要后操作回调
 	// 关于相关上下文的事情放在打开后操作里面处理
@@ -394,14 +404,17 @@ FLT_POSTOP_CALLBACK_STATUS FSFPostCreate(__inout PFLT_CALLBACK_DATA Data, __in P
 		goto FsfPostCreateCleanup;
 	}
 
+	ANSI_STRING astr;
+	RtlUnicodeStringToAnsiString(&astr ,&fileNameInfo->Name, true);
+
 	// 如果在前面执行真实的打开操作时失败了则直接返回
 	if (!NT_SUCCESS(Data->IoStatus.Status))
 	{
-		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> 打开 \"%wZ\" 失败！错误码：0x%x\n", &fileNameInfo->Name, Data->IoStatus.Status);
+		DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> 打开 \"%Z\" 失败！错误码：0x%x\n", &astr, Data->IoStatus.Status);
 		goto FsfPostCreateCleanup;
 	}
 
-	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> 打开 \"%wZ\" 成功！\n", &fileNameInfo->Name);
+	DbgPrint("wyFileSysFlt.sys : FSFPostCreate -> 打开 \"%Z\" 成功！\n", &astr);
 
 	// 查找或者创建流上下文
 	status = FSFCreateOrFindStreamContext(Data, TRUE, &streamContext, &streamContextCreated);
@@ -464,6 +477,8 @@ FLT_POSTOP_CALLBACK_STATUS FSFPostCreate(__inout PFLT_CALLBACK_DATA Data, __in P
 FsfPostCreateCleanup:
 
 	// 释放我们已经获得的引用
+	//RtlFreeAnsiString(&astr);
+
 	if (fileNameInfo != NULL)
 		FltReleaseFileNameInformation(fileNameInfo);
 

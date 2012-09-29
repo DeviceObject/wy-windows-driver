@@ -31,4 +31,9 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CListCtrl m_cListCtrl;
+
+	HANDLE port;
+
+public:
+	static DWORD WINAPI MonThread(PVOID lpParam);
 };

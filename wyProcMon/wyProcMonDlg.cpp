@@ -4,6 +4,13 @@
 #include "stdafx.h"
 #include "wyProcMon.h"
 #include "wyProcMonDlg.h"
+#include <WINDOWS.H>
+#include <winioctl.h>
+#include <string.h>
+#include <crtdbg.h>
+#include <assert.h>
+#include <dontuse.h>
+#include <fltuser.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -48,6 +55,7 @@ END_MESSAGE_MAP()
 
 CwyProcMonDlg::CwyProcMonDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CwyProcMonDlg::IDD, pParent)
+	, port(NULL)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -96,6 +104,7 @@ BOOL CwyProcMonDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	// 初始化控件
 	m_cListCtrl.InsertColumn(0, L"时间", LVCFMT_LEFT, 50);
 	m_cListCtrl.InsertColumn(1, L"进程名", LVCFMT_LEFT, 100);
 	m_cListCtrl.InsertColumn(2, L"进程ID", LVCFMT_LEFT, 50);
@@ -103,6 +112,20 @@ BOOL CwyProcMonDlg::OnInitDialog()
 	m_cListCtrl.InsertColumn(4, L"路径", LVCFMT_LEFT, 500);
 	m_cListCtrl.InsertColumn(5, L"结果", LVCFMT_LEFT, 100);
 	m_cListCtrl.InsertColumn(6, L"详细", LVCFMT_LEFT, 500);
+
+	// 开启通信端口
+	const PWSTR wyProcMonSysPortName = L"\\wyProcMonSysPort";
+	HRESULT hResult = FilterConnectCommunicationPort(wyProcMonSysPortName, 0, NULL, 0, NULL, &port);
+	if (IS_ERROR(hResult))
+	{
+		TRACE("FilterConnectCommunicationPort failed .\n");
+		return TRUE;
+	}
+
+	// 创建一个完成端口
+
+	// 启动接收线程
+	CreateThread(NULL, 0, MonThread, this, 0, NULL);
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -156,3 +179,11 @@ HCURSOR CwyProcMonDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+DWORD CwyProcMonDlg::MonThread(PVOID lpParam)
+{
+	CwyProcMonDlg *dlg = (CwyProcMonDlg*)lpParam;
+	if (dlg == NULL)
+		return -1;
+
+	return 0;
+}
