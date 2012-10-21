@@ -890,6 +890,7 @@ ScannerPreWrite (
                 RtlCopyMemory( &notification->Contents,
                                buffer,
                                notification->BytesToScan );
+				DbgPrint("!!! scanner.sys --- notification->BytesToScan : %d\n", notification->BytesToScan);
 
             } __except( EXCEPTION_EXECUTE_HANDLER ) {
 
