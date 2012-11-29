@@ -230,6 +230,10 @@
 			>
 		</Filter>
 		<File
+			RelativePath=".\readme.txt"
+			>
+		</File>
+		<File
 			RelativePath=".\wyProcMonSys.inf"
 			>
 		</File>

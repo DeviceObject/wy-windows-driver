@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "wyProcMon.h"
 #include "wyProcMonDlg.h"
+#include "wyProcMonPublic.h"
 #include <WINDOWS.H>
 #include <winioctl.h>
 #include <string.h>
@@ -16,6 +17,8 @@
 #define new DEBUG_NEW
 #endif
 
+#define SCANNER_DEFAULT_REQUEST_COUNT       5
+#define SCANNER_DEFAULT_THREAD_COUNT        2
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -114,7 +117,8 @@ BOOL CwyProcMonDlg::OnInitDialog()
 	m_cListCtrl.InsertColumn(6, L"详细", LVCFMT_LEFT, 500);
 
 	// 开启通信端口
-	const PWSTR wyProcMonSysPortName = L"\\wyProcMonSysPort";
+	
+	HANDLE port = NULL;
 	HRESULT hResult = FilterConnectCommunicationPort(wyProcMonSysPortName, 0, NULL, 0, NULL, &port);
 	if (IS_ERROR(hResult))
 	{
@@ -123,6 +127,17 @@ BOOL CwyProcMonDlg::OnInitDialog()
 	}
 
 	// 创建一个完成端口
+	threadCount = SCANNER_DEFAULT_THREAD_COUNT;
+	HANDLE completion = CreateIoCompletionPort(port, NULL, 0, threadCount);
+	if (completion == NULL)
+	{
+		TRACE("CreateIoCompletionPort failed .\n");
+		CloseHandle(port);
+		return TRUE;
+	}
+
+	iDriverCom.port = port;
+	iDriverCom.completion = completion;
 
 	// 启动接收线程
 	CreateThread(NULL, 0, MonThread, this, 0, NULL);
@@ -184,6 +199,36 @@ DWORD CwyProcMonDlg::MonThread(PVOID lpParam)
 	CwyProcMonDlg *dlg = (CwyProcMonDlg*)lpParam;
 	if (dlg == NULL)
 		return -1;
+
+	HRESULT ret = 0;
+
+	// 启动指定数量的线程
+	DWORD threadId = 0;
+	for (int i = 0; i < dlg->threadCount; ++i)
+	{
+		dlg->iThreads[i] = CreateThread(NULL, 0, MonThread, &dlg->iDriverCom, 0, &threadId);
+
+		if (dlg->iThreads[i] == NULL)
+		{
+			ret = GetLastError();
+		}
+
+		for (int j = 0; j < 1; ++j)
+		{
+			// 创建消息
+#pragma prefast(suppress:__WARNING_MEMORY_LEAK, "msg will not be leaked because it is freed in ScannerWorker")
+
+			dlg->notification = new PMESSAGE_NOTIFICATION;
+			if (dlg->notification == NULL)
+			{
+				ret = ERROR_NOT_ENOUGH_MEMORY;
+			}
+
+			ZeroMemory(dlg->notification, sizeof(PMESSAGE_NOTIFICATION));
+
+			// 从驱动获取消息
+		}
+	}
 
 	return 0;
 }

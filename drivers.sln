@@ -25,6 +25,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wyProcMonSys", "wyProcMonSy
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rc4", "rc4\rc4.vcproj", "{A15E3976-047A-4DF1-AA7A-B32BDB083B28}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleCommunicate", "SimpleCommunicate\SimpleCommunicate.vcproj", "{A999C443-2916-43AD-9CA0-29CEB74F56A8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleCommunicateU", "SimpleCommunicateU\SimpleCommunicateU.vcproj", "{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -79,6 +83,14 @@ Global
 		{A15E3976-047A-4DF1-AA7A-B32BDB083B28}.Debug|Win32.Build.0 = Debug|Win32
 		{A15E3976-047A-4DF1-AA7A-B32BDB083B28}.Release|Win32.ActiveCfg = Release|Win32
 		{A15E3976-047A-4DF1-AA7A-B32BDB083B28}.Release|Win32.Build.0 = Release|Win32
+		{A999C443-2916-43AD-9CA0-29CEB74F56A8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A999C443-2916-43AD-9CA0-29CEB74F56A8}.Debug|Win32.Build.0 = Debug|Win32
+		{A999C443-2916-43AD-9CA0-29CEB74F56A8}.Release|Win32.ActiveCfg = Release|Win32
+		{A999C443-2916-43AD-9CA0-29CEB74F56A8}.Release|Win32.Build.0 = Release|Win32
+		{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}.Debug|Win32.Build.0 = Debug|Win32
+		{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}.Release|Win32.ActiveCfg = Release|Win32
+		{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

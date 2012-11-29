@@ -58,11 +58,7 @@ VOID Usage(VOID)
     printf( "Usage: scanuser [requests per thread] [number of threads(1-64)]\n" );
 }
 
-BOOL
-ScanBuffer (
-    __in_bcount(BufferSize) PUCHAR Buffer,
-    __in ULONG BufferSize
-    )
+BOOL ScanBuffer(__in_bcount(BufferSize) PUCHAR Buffer, __in ULONG BufferSize)
 /*++
 
 Routine Description
@@ -104,10 +100,7 @@ Return Value
 }
 
 
-DWORD
-ScannerWorker(
-    __in PSCANNER_THREAD_CONTEXT Context
-    )
+DWORD ScannerWorker(__in PSCANNER_THREAD_CONTEXT Context)
 {
     PSCANNER_NOTIFICATION notification;
     SCANNER_REPLY_MESSAGE replyMessage;
@@ -310,10 +303,7 @@ int _cdecl main (__in int argc, __in_ecount(argc) char *argv[])
 
             //  从驱动获取消息
             //  Request messages from the filter driver.
-            hr = FilterGetMessage( port,
-                                   &msg->MessageHeader,
-                                   FIELD_OFFSET( SCANNER_MESSAGE, Ovlp ),
-                                   &msg->Ovlp );
+            hr = FilterGetMessage(port, &msg->MessageHeader, FIELD_OFFSET(SCANNER_MESSAGE, Ovlp), &msg->Ovlp );
 
             if (hr != HRESULT_FROM_WIN32( ERROR_IO_PENDING ))
 			{

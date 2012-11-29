@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WDKROOT)\inc\ddk&quot;;&quot;$(WDKROOT)\inc\crt&quot;"
+				AdditionalIncludeDirectories="&quot;$(WDKROOT)\inc\ddk&quot;;&quot;$(WDKROOT)\inc\crt&quot;;../public/inc"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -71,7 +71,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="fltlib.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="$(WDKROOT)\lib\wxp\i386"
+				AdditionalLibraryDirectories="&quot;$(WDKROOT)\lib\wxp\i386&quot;;../public/lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -241,6 +241,10 @@
 			</File>
 			<File
 				RelativePath=".\wyProcMonDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\public\inc\wyProcMonPublic.h"
 				>
 			</File>
 		</Filter>
