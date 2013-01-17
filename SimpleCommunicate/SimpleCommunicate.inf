@@ -1,0 +1,103 @@
+;;;
+;;; Scanner
+;;;
+;;;
+;;; Copyright (c) 1999-2002, Microsoft Corporation
+;;;
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = "ActivityMonitor"                         ;This is determined by the work this filter driver does
+ClassGuid   = {95DC44D9-087F-4c5d-BB92-D1A3E111AC2B}    ;This value is determined by the Class
+Provider    = %Msft%
+DriverVer   = 06/16/2007,1.0.0.0
+CatalogFile = SimpleCommunicate.cat
+
+
+[DestinationDirs]
+DefaultDestDir          = 12
+Scanner.DriverFiles     = 12            ;%windir%\system32\drivers
+Scanner.UserFiles       = 10,FltMgr     ;%windir%\FltMgr
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = SimpleCommunicate.DriverFiles, SimpleCommunicate.UserFiles
+
+[DefaultInstall.Services]
+AddService          = %ServiceName%,,SimpleCommunicate.Service
+
+;;
+;; Default uninstall sections
+;;
+
+[DefaultUninstall]
+DelFiles            = SimpleCommunicate.DriverFiles, SimpleCommunicate.UserFiles
+
+
+
+[DefaultUninstall.Services]
+DelService = SimpleCommunicate,0x200      ;Ensure service is stopped before deleting
+
+;
+; Services Section
+;
+
+[SimpleCommunicate.Service]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %12%\%DriverName%.sys        ;%windir%\system32\drivers\
+Dependencies     = "FltMgr"
+ServiceType      = 2                            ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                            ;SERVICE_DEMAND_START
+ErrorControl     = 1                            ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Content Screener"
+AddReg           = SimpleCommunicate.AddRegistry
+
+;
+; Registry Modifications
+;
+
+[SimpleCommunicate.AddRegistry]
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+
+;
+; Copy Files
+;
+
+[SimpleCommunicate.DriverFiles]
+%DriverName%.sys
+
+[SimpleCommunicate.UserFiles]
+%UserAppName%.exe
+
+[SourceDisksFiles]
+SimpleCommunicate.sys = 1,,
+SimpleCommunicateU.exe = 1,,
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+;;
+;; String Section
+;;
+
+[Strings]
+Msft                    = "Microsoft Corporation"
+ServiceDescription      = "SimpleCommunicate mini-filter driver"
+ServiceName             = "SimpleCommunicate"
+DriverName              = "SimpleCommunicate"
+UserAppName             = "SimpleCommunicate"
+DiskId1                 = "SimpleCommunicate Device Installation Disk"
+
+;Instances specific information.
+DefaultInstance         = "SimpleCommunicate Instance"
+Instance1.Name          = "SimpleCommunicate Instance"
+Instance1.Altitude      = "265001"
+Instance1.Flags         = 0x0          ; Allow all attachments
+

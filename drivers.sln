@@ -29,6 +29,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleCommunicate", "Simple
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleCommunicateU", "SimpleCommunicateU\SimpleCommunicateU.vcproj", "{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SSDTHOOKDemo", "SSDTHOOKDemo\SSDTHOOKDemo.vcproj", "{734269AC-7CE5-4E9E-BBFE-E881F36785CC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SSDTHOOKDemoU", "SSDTHOOKDemoU\SSDTHOOKDemoU.vcproj", "{63C26851-7522-4ECA-8E3C-7B925D35FCEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -91,6 +95,14 @@ Global
 		{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}.Debug|Win32.Build.0 = Debug|Win32
 		{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}.Release|Win32.ActiveCfg = Release|Win32
 		{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}.Release|Win32.Build.0 = Release|Win32
+		{734269AC-7CE5-4E9E-BBFE-E881F36785CC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{734269AC-7CE5-4E9E-BBFE-E881F36785CC}.Debug|Win32.Build.0 = Debug|Win32
+		{734269AC-7CE5-4E9E-BBFE-E881F36785CC}.Release|Win32.ActiveCfg = Release|Win32
+		{734269AC-7CE5-4E9E-BBFE-E881F36785CC}.Release|Win32.Build.0 = Release|Win32
+		{63C26851-7522-4ECA-8E3C-7B925D35FCEB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{63C26851-7522-4ECA-8E3C-7B925D35FCEB}.Debug|Win32.Build.0 = Debug|Win32
+		{63C26851-7522-4ECA-8E3C-7B925D35FCEB}.Release|Win32.ActiveCfg = Release|Win32
+		{63C26851-7522-4ECA-8E3C-7B925D35FCEB}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -2,10 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="scanner"
-	ProjectGUID="{AFBDCD6D-E37B-4F5A-AEE7-69C15501FD5C}"
-	RootNamespace="scanner"
-	Keyword="Win32Proj"
+	Name="SSDTHOOKDemoU"
+	ProjectGUID="{63C26851-7522-4ECA-8E3C-7B925D35FCEB}"
+	RootNamespace="SSDTHOOKDemoU"
+	Keyword="MFCProj"
 	>
 	<Platforms>
 		<Platform
@@ -20,6 +20,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			UseOfMFC="2"
 			CharacterSet="1"
 			>
 			<Tool
@@ -36,46 +37,39 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="false"
+				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WDKROOT)\inc\ddk&quot;;&quot;$(WDKROOT)\inc\crt&quot;"
-				PreprocessorDefinitions="WIN32=100;_X86_=1;DBG=1"
-				MinimalRebuild="false"
-				BasicRuntimeChecks="0"
-				RuntimeLibrary="1"
-				BufferSecurityCheck="false"
-				UsePrecompiledHeader="0"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				WarnAsError="true"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="1"
-				CallingConvention="2"
-				CompileAs="1"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="2052"
+				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ntoskrnl.lib Fltmgr.lib hal.lib"
-				OutputFile="$(OutDir)\$(ProjectName).sys"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(WDKROOT)\lib\wxp\i386"
-				IgnoreAllDefaultLibraries="true"
+				LinkIncremental="2"
 				GenerateDebugInformation="true"
-				SubSystem="3"
-				StackReserveSize="400000"
-				StackCommitSize="10000"
-				Driver="1"
-				EntryPointSymbol="DriverEntry"
+				SubSystem="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -108,6 +102,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			UseOfMFC="2"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -125,12 +120,16 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="false"
+				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
+				MinimalRebuild="false"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
@@ -140,6 +139,9 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="2052"
+				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -188,8 +190,36 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\scanner.c"
+				RelativePath=".\SSDTHOOKDemoU.cpp"
 				>
+			</File>
+			<File
+				RelativePath=".\SSDTHOOKDemoUDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SSDTHOOKMidware.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\stdafx.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -198,11 +228,23 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\scanner.h"
+				RelativePath=".\Resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\scanuk.h"
+				RelativePath=".\SSDTHOOKDemoU.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SSDTHOOKDemoUDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SSDTHOOKMidware.h"
+				>
+			</File>
+			<File
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 		</Filter>
@@ -211,16 +253,28 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\res\SSDTHOOKDemoU.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\SSDTHOOKDemoU.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\res\SSDTHOOKDemoU.rc2"
+				>
+			</File>
 		</Filter>
 		<File
-			RelativePath=".\readme.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\scanner.inf"
+			RelativePath=".\ReadMe.txt"
 			>
 		</File>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="SSDTHOOKDemoU.rc"
+		/>
 	</Globals>
 </VisualStudioProject>

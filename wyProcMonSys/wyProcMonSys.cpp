@@ -127,6 +127,7 @@ NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING Regi
 
 	PSECURITY_DESCRIPTOR sd = NULL;
 	OBJECT_ATTRIBUTES objectAttributs;
+
 	// 创建一个安全描述符
 	status = FltBuildDefaultSecurityDescriptor(&sd, FLT_PORT_ALL_ACCESS);
 	if (NT_SUCCESS(status))
@@ -140,6 +141,8 @@ NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING Regi
 
 		if (NT_SUCCESS(status))
 		{
+			KdPrint(("[wyprocmonsys] 通信端口创建成功！\n"));
+
 			// 计算进程名偏移量
 			globalData.iProcessNameOffsetInPEPROCESS = GetProcessNameOffset();
 
@@ -149,7 +152,10 @@ NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING Regi
 			// 开始过滤IO
 			status = FltStartFiltering(globalData.iFilter);
 			if (NT_SUCCESS(status))
+			{
+				KdPrint(("[wyprocmonsys] 开始过滤IO操作！\n"));
 				return STATUS_SUCCESS;
+			}
 
 			FltCloseCommunicationPort(globalData.iDriverPort);
 		}

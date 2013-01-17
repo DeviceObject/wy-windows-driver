@@ -39,12 +39,12 @@ FLT_OPERATION_REGISTRATION g_CallbackRoutines[] = {
 	//	FSFPostRead
 	//},
 
-	//{
-	//	IRP_MJ_WRITE,
-	//	FLTFL_OPERATION_REGISTRATION_SKIP_PAGING_IO,
-	//	FSFPreWrite,
-	//	FSFPostWrite
-	//},
+	{
+		IRP_MJ_WRITE,
+		FLTFL_OPERATION_REGISTRATION_SKIP_PAGING_IO,
+		NULL,
+		FSFPostWrite
+	},
 
 	{
 		IRP_MJ_CLEANUP,
@@ -505,10 +505,33 @@ FsfPostCreateCleanup:
 //FLT_PREOP_CALLBACK_STATUS FSFPreWrite(__inout PFLT_CALLBACK_DATA Data, __in PCFLT_RELATED_OBJECTS FltObjects, __deref_out_opt PVOID *CompletionContext)
 //{
 //}
-//
-//FLT_POSTOP_CALLBACK_STATUS FSFPostWrite(__inout PFLT_CALLBACK_DATA Data, __in PCFLT_RELATED_OBJECTS FltObjects, __in_opt PVOID CompletionContext, __in FLT_POST_OPERATION_FLAGS Flags)
-//{
-//}
+
+FLT_POSTOP_CALLBACK_STATUS FSFPostWrite(__inout PFLT_CALLBACK_DATA Data, __in PCFLT_RELATED_OBJECTS FltObjects, __in_opt PVOID CompletionContext, __in FLT_POST_OPERATION_FLAGS Flags)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+
+	UNREFERENCED_PARAMETER(Data);
+	UNREFERENCED_PARAMETER(FltObjects);
+	UNREFERENCED_PARAMETER(CompletionContext);
+	UNREFERENCED_PARAMETER(Flags);
+
+	if (NT_SUCCESS(Data->IoStatus.Status))
+	{
+		// 写入成功了开始刷缓存
+		IO_STATUS_BLOCK ioStatus;
+		if (Data->Iopb->TargetFileObject->SectionObjectPointer)
+		{
+			CcFlushCache(Data->Iopb->TargetFileObject->SectionObjectPointer, NULL, 0, &ioStatus);
+
+			if (NT_SUCCESS(ioStatus.Status))
+			{
+				KdPrint(("[wyFileSysFlt.sys] PostWrite : Operator Done !\n"));
+			}
+		}
+	}
+
+	return FLT_POSTOP_FINISHED_PROCESSING;
+}
 
 FLT_PREOP_CALLBACK_STATUS FSFPreCleanup(__inout PFLT_CALLBACK_DATA Data, __in PCFLT_RELATED_OBJECTS FltObjects, __deref_out_opt PVOID *CompletionContext)
 {

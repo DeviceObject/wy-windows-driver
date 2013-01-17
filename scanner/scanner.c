@@ -24,6 +24,8 @@ Copyright (c) 1999-2002  Microsoft Corporation
 
 SCANNER_DATA ScannerData;
 
+
+
 //
 //	这是一个我们在扫描中感兴趣的文件后缀名静态列表。
 //

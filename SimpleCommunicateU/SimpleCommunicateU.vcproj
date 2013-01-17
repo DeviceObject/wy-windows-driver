@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="scanner"
-	ProjectGUID="{AFBDCD6D-E37B-4F5A-AEE7-69C15501FD5C}"
-	RootNamespace="scanner"
+	Name="SimpleCommunicateU"
+	ProjectGUID="{AC2F6992-B58E-4541-9F26-1D4B13DBF0F8}"
+	RootNamespace="SimpleCommunicateU"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -40,19 +40,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WDKROOT)\inc\ddk&quot;;&quot;$(WDKROOT)\inc\crt&quot;"
-				PreprocessorDefinitions="WIN32=100;_X86_=1;DBG=1"
-				MinimalRebuild="false"
-				BasicRuntimeChecks="0"
+				AdditionalIncludeDirectories="&quot;$(WDKROOT)\inc\ddk&quot;;&quot;$(WDKROOT)\inc\crt&quot;;..\SimpleCommunicate\;..\public\inc\"
+				PreprocessorDefinitions="_CONSOLE;WIN32=100;_X86_=1;DBG=1"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="true"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="1"
-				CallingConvention="2"
-				CompileAs="1"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -65,17 +61,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ntoskrnl.lib Fltmgr.lib hal.lib"
-				OutputFile="$(OutDir)\$(ProjectName).sys"
-				LinkIncremental="1"
+				AdditionalDependencies="fltlib.lib"
+				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(WDKROOT)\lib\wxp\i386"
-				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
-				SubSystem="3"
-				StackReserveSize="400000"
-				StackCommitSize="10000"
-				Driver="1"
-				EntryPointSymbol="DriverEntry"
+				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -128,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -148,7 +138,7 @@
 				Name="VCLinkerTool"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -188,7 +178,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\scanner.c"
+				RelativePath=".\SimpleCommunicateU.cpp"
 				>
 			</File>
 		</Filter>
@@ -198,11 +188,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\scanner.h"
-				>
-			</File>
-			<File
-				RelativePath=".\scanuk.h"
+				RelativePath=".\SimpleCommunicateU.h"
 				>
 			</File>
 		</Filter>
@@ -212,14 +198,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\readme.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\scanner.inf"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
