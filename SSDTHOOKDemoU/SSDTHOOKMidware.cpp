@@ -52,7 +52,7 @@ SSDTHOOKMidware::~SSDTHOOKMidware()
 
 int SSDTHOOKMidware::RunSSDTHOOKDriver(TCHAR *aServiceName)
 {
-	int errCode = 0;
+	int errCode = ERROR_SUCCESS;
 
 	// 检查参数是否有效
 	if (!aServiceName)
@@ -95,6 +95,14 @@ int SSDTHOOKMidware::RunSSDTHOOKDriver(TCHAR *aServiceName)
 
 STARTUP_SSDTHOOK_DRIVER:
 	// 安装完成或者服务已存在，则直接启动
+	hService = OpenService(hSCManager, aServiceName, SERVICE_ALL_ACCESS);
+	if (NULL == hService)
+	{
+		errCode = GetLastError();
+		OutputDebugString(_T("StopSSDTHOOKDriver Step - 2 : OpenService failed .\n"));
+		return errCode;
+	}
+
 	BOOL ret = StartService(hService, NULL, NULL);
 	if (!ret)
 	{
@@ -107,4 +115,48 @@ STARTUP_SSDTHOOK_DRIVER:
 
 	OutputDebugString(_T("RunSSDTHOOKDriver Run Service succeed .\n"));
 	return errCode;
+}
+
+int SSDTHOOKMidware::StopSSDTHOOKDriver(TCHAR *aServiceName)
+{
+	int errCode = ERROR_SUCCESS;
+
+	// 验证参数有效性
+	if (!aServiceName)
+		return ERROR_INVALID_PARAMETER;
+
+	// 向驱动发送可以卸载的消息，使用DeviceIoControl()
+
+	// 检查服务是否存在
+	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	if (NULL == hSCManager)
+	{
+		errCode = GetLastError();
+		OutputDebugString(_T("StopSSDTHOOKDriver Step - 1 : OpenSCManager failed .\n"));
+		return errCode;
+	}
+
+	SC_HANDLE hService = OpenService(hSCManager, aServiceName, SERVICE_ALL_ACCESS);
+	if (NULL == hService)
+	{
+		errCode = GetLastError();
+		OutputDebugString(_T("StopSSDTHOOKDriver Step - 2 : OpenService failed .\n"));
+		return errCode;
+	}
+
+	SERVICE_STATUS ssStatus; 
+	BOOL ret = ControlService(hService, SERVICE_CONTROL_STOP, &ssStatus);
+	if (!ret)
+	{
+		errCode = GetLastError();
+		OutputDebugString(_T("StopSSDTHOOKDriver Step - 3 : ControlService::SERVICE_CONTROL_STOP failed .\n"));
+		return errCode;
+	}
+
+	return ERROR_SUCCESS;
+}
+
+int SSDTHOOKMidware::ConnectToDriver(TCHAR *aDeviceName)
+{
+	// 连接到驱动，发送开始工作的命令
 }

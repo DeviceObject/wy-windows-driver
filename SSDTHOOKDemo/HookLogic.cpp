@@ -3,37 +3,59 @@
 
 ULONG global_ProtectedProcessIds[MAX_SSDT_HOOK_PROCESS_ID_NUMBER] = {0};
 ULONG global_ProtectedProcessIdsLength = 0;
+KMUTEX global_ProtectedProcessIdsSynchronism;
 
 ULONG global_HidedProcessIds[MAX_SSDT_HOOK_PROCESS_ID_NUMBER] = {0};
 ULONG global_HidedProcessIdsLength = 0;
+KMUTEX global_HidedProcessIdsSynchronism;
 
 NTQUERYSYSTEMINFORMATION pOldNtQuerySystemInformation = NULL;
 NTTERMINATEPROCESS pOldNtTerminateProcess = NULL;
 
-ULONG CheckProcessIsInProtectList(ULONG aProcessId)
+VOID InitializeSynchronObjects()
+{
+	KeInitializeMutex(&global_ProtectedProcessIdsSynchronism, 0);
+	KeInitializeMutex(&global_HidedProcessIdsSynchronism, 0);
+}
+
+LONG CheckProcessIsInProtectList(ULONG aProcessId)
 {
 	if (aProcessId == 0)
 		return -1;
+
+	KeWaitForSingleObject(&global_ProtectedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
 
 	for (ULONG i = 0; (i < global_ProtectedProcessIdsLength && i < MAX_SSDT_HOOK_PROCESS_ID_NUMBER); ++i)
 	{
 		if (global_ProtectedProcessIds[i] == aProcessId)
+		{
+			KeReleaseMutex(&global_ProtectedProcessIdsSynchronism, FALSE);
 			return i;
+		}
 	}
+
+	KeReleaseMutex(&global_ProtectedProcessIdsSynchronism, FALSE);
 
 	return -1;
 }
 
-ULONG CheckProcessIsInHideList(ULONG aProcessId)
+LONG CheckProcessIsInHideList(ULONG aProcessId)
 {
 	if (aProcessId == 0)
 		return -1;
 
+	KeWaitForSingleObject(&global_HidedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+
 	for (ULONG i = 0; (i < global_HidedProcessIdsLength && i < MAX_SSDT_HOOK_PROCESS_ID_NUMBER); ++i)
 	{
 		if (global_HidedProcessIds[i] == aProcessId)
+		{
+			KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 			return i;
+		}
 	}
+
+	KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 
 	return -1;
 }
@@ -42,7 +64,9 @@ BOOLEAN InsertProcessInProtectList(ULONG aProcessId)
 {
 	if (CheckProcessIsInProtectList(aProcessId) == -1 && global_ProtectedProcessIdsLength < MAX_SSDT_HOOK_PROCESS_ID_NUMBER)
 	{
+		KeWaitForSingleObject(&global_ProtectedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
 		global_ProtectedProcessIds[global_ProtectedProcessIdsLength++] = aProcessId;
+		KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 
 		return TRUE;
 	}
@@ -56,7 +80,9 @@ BOOLEAN RemoveProcessFromProtectList(ULONG aProcessId)
 
 	if (index != -1)
 	{
+		KeWaitForSingleObject(&global_ProtectedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
 		global_ProtectedProcessIds[index] = global_ProtectedProcessIds[global_ProtectedProcessIdsLength--];
+		KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 
 		return TRUE;
 	}
@@ -68,7 +94,9 @@ BOOLEAN InsertProcessInHideList(ULONG aProcessId)
 {
 	if (CheckProcessIsInHideList(aProcessId) == -1 && global_HidedProcessIdsLength < MAX_SSDT_HOOK_PROCESS_ID_NUMBER)
 	{
+		KeWaitForSingleObject(&global_HidedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
 		global_HidedProcessIds[global_HidedProcessIdsLength++] = aProcessId;
+		KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 
 		return TRUE;
 	}
@@ -82,7 +110,9 @@ BOOLEAN RemoveProcessFromHideList(ULONG aProcessId)
 
 	if (index != -1)
 	{
+		KeWaitForSingleObject(&global_HidedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
 		global_HidedProcessIds[index] = global_HidedProcessIds[global_HidedProcessIdsLength--];
+		KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 
 		return TRUE;
 	}

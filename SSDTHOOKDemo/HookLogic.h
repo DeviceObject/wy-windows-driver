@@ -21,13 +21,17 @@ extern "C"
 // 控制进程列表
 extern ULONG global_ProtectedProcessIds[MAX_SSDT_HOOK_PROCESS_ID_NUMBER];
 extern ULONG global_ProtectedProcessIdsLength;
+extern KMUTEX global_ProtectedProcessIdsSynchronism;
 
 extern ULONG global_HidedProcessIds[MAX_SSDT_HOOK_PROCESS_ID_NUMBER];
 extern ULONG global_HidedProcessIdsLength;
+extern KMUTEX global_HidedProcessIdsSynchronism;
 
-ULONG CheckProcessIsInProtectList(ULONG aProcessId);
+VOID InitializeSynchronObjects();
 
-ULONG CheckProcessIsInHideList(ULONG aProcessId);
+LONG CheckProcessIsInProtectList(ULONG aProcessId);
+
+LONG CheckProcessIsInHideList(ULONG aProcessId);
 
 BOOLEAN InsertProcessInProtectList(ULONG aProcessId);
 

@@ -1,7 +1,11 @@
 
 #include "DriverStruct.h"
 
+// 全局工作状态
+BOOL global_WorkState = FALSE;
 
+// 全局同步对象，使用互斥体
+KMUTEX global_Synchronism;
 
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegistryPath)
 {
@@ -54,6 +58,9 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 	// 安装HOOK
 	InstallSysServiceHook((ULONG)ZwQuerySystemInformation, (ULONG)HookNtQuerySystemInformation);
 	InstallSysServiceHook((ULONG)ZwTerminateProcess, (ULONG)HookNtTerminateProcess);
+
+	// 初始化同步对象，这里使用的是互斥体
+	KeInitializeMutex(&global_Synchronism, 0);
 
 	return status;
 }
@@ -136,6 +143,22 @@ NTSTATUS DeviceIoControlDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 
 	switch (controlCode)
 	{
+	case IO_START_WORKING:
+		{
+			// 更新工作状态标志，注意同步操作
+			status = KeWaitForSingleObject(&global_Synchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+			global_WorkState = TRUE;
+			KeReleaseMutex(&global_Synchronism, FALSE);
+		}
+		break;
+	case IO_STOP_WORKING:
+		{
+			// 更新工作状态标志，注意同步操作
+			status = KeWaitForSingleObject(&global_Synchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+			global_WorkState = FALSE;
+			KeReleaseMutex(&global_Synchronism, FALSE);
+		}
+		break;
 	case IO_INSERT_PROTECT_PROCESS:
 		{
 			if (InsertProcessInProtectList(processId) == 0)

@@ -15,6 +15,9 @@ extern "C"
 #include <stdlib.h>
 #include <WINDEF.H>
 
+extern BOOL global_WorkState;
+extern KMUTEX global_Synchronism;
+
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING  pRegistryPath);
 
 VOID DriverUnload(IN PDRIVER_OBJECT pDriverObject);
