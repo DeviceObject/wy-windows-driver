@@ -11,6 +11,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
+	// 初始化设备名与符号链接名
 	UNICODE_STRING deviceName;
 	UNICODE_STRING symboLinkName;
 	RtlInitUnicodeString(&deviceName, DEVICE_NAME_W);
@@ -18,9 +19,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 
 	// 设置派遣函数
 	for (ULONG i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; ++i)
-	{
 		pDriverObject->MajorFunction[i] = GeneralDispatch;
-	}
 
 	pDriverObject->MajorFunction[IRP_MJ_CREATE]			= CreateDispatch;
 	pDriverObject->MajorFunction[IRP_MJ_CLOSE]			= CloseDispatch;
@@ -35,20 +34,15 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 	PDEVICE_OBJECT pDeviceObject = NULL;
 	status = IoCreateDevice(pDriverObject, 0, &deviceName, FILE_DEVICE_UNKNOWN, 0, FALSE, &pDeviceObject);
 	if (!NT_SUCCESS(status))
-	{
 		return status;
-	}
 
 	if (!pDeviceObject)
-	{
 		return STATUS_UNEXPECTED_IO_ERROR;
-	}
 
 	// 设置其他
 	pDeviceObject->Flags |= DO_DIRECT_IO;
 	pDeviceObject->AlignmentRequirement = FILE_WORD_ALIGNMENT;
 	status = IoCreateSymbolicLink(&symboLinkName, &deviceName);
-
 	pDeviceObject->Flags &= ~DO_DEVICE_INITIALIZING;
 
 	// 这里是重点！
@@ -67,9 +61,10 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 
 VOID DriverUnload(IN PDRIVER_OBJECT pDriverObject)
 {
+	// 删除符号链接与设备对象
 	UNICODE_STRING symboLinkName;
-	
 	RtlInitUnicodeString(&symboLinkName, SYMBO_LINK_NAME_W);
+
 	IoDeleteSymbolicLink(&symboLinkName);
 	IoDeleteDevice(pDriverObject->DeviceObject);
 
@@ -81,8 +76,10 @@ VOID DriverUnload(IN PDRIVER_OBJECT pDriverObject)
 
 NTSTATUS GeneralDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 {
+	// 常规派发函数，直接将IRP传到下一层
 	pIrp->IoStatus.Status = STATUS_NOT_SUPPORTED;
 	pIrp->IoStatus.Information = 0;
+
 	IoCompleteRequest(pIrp, IO_NO_INCREMENT);
 
 	return pIrp->IoStatus.Status;
@@ -139,6 +136,7 @@ NTSTATUS DeviceIoControlDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 		goto FINISH_DEVICE_IO_CONTROL_DISPATCH;
 	}
 
+	// 获取进程Id
 	ULONG processId = atol(pInputBuffer);
 
 	switch (controlCode)
@@ -146,7 +144,9 @@ NTSTATUS DeviceIoControlDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 	case IO_START_WORKING:
 		{
 			// 更新工作状态标志，注意同步操作
-			status = KeWaitForSingleObject(&global_Synchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+			LARGE_INTEGER li;
+			li.QuadPart = 100*1000*1000*1000*1;
+			status = KeWaitForSingleObject(&global_Synchronism, Executive, KernelMode, FALSE, &li);
 			global_WorkState = TRUE;
 			KeReleaseMutex(&global_Synchronism, FALSE);
 		}
@@ -154,7 +154,9 @@ NTSTATUS DeviceIoControlDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 	case IO_STOP_WORKING:
 		{
 			// 更新工作状态标志，注意同步操作
-			status = KeWaitForSingleObject(&global_Synchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+			LARGE_INTEGER li;
+			li.QuadPart = 100*1000*1000*1000*1;
+			status = KeWaitForSingleObject(&global_Synchronism, Executive, KernelMode, FALSE, &li);
 			global_WorkState = FALSE;
 			KeReleaseMutex(&global_Synchronism, FALSE);
 		}

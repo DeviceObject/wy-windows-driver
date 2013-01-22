@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "SSDTHOOKMidware.h"
+#include <winsvc.h>
+#include <stdlib.h>
 
 // 提升当前进程权限
 BOOL AdjustProcessTokenPrivilege()
@@ -47,7 +49,7 @@ SSDTHOOKMidware::~SSDTHOOKMidware()
 		CloseHandle(iDriverContext);
 	}
 
-	iDriverContext == NULL;
+	iDriverContext = NULL;
 }
 
 int SSDTHOOKMidware::RunSSDTHOOKDriver(TCHAR *aServiceName)
@@ -125,7 +127,7 @@ int SSDTHOOKMidware::StopSSDTHOOKDriver(TCHAR *aServiceName)
 	if (!aServiceName)
 		return ERROR_INVALID_PARAMETER;
 
-	// 向驱动发送可以卸载的消息，使用DeviceIoControl()
+	// 向驱动发送可以卸载的消息，使用DeviceIoControl()， 这里驱动暂未实现
 
 	// 检查服务是否存在
 	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
@@ -158,5 +160,119 @@ int SSDTHOOKMidware::StopSSDTHOOKDriver(TCHAR *aServiceName)
 
 int SSDTHOOKMidware::ConnectToDriver(TCHAR *aDeviceName)
 {
-	// 连接到驱动，发送开始工作的命令
+	int errCode = ERROR_SUCCESS;
+
+	// 连接到驱动，发送开始工作的命令，调用DeviceIoControl
+	(HANDLE)this->iDriverContext = CreateFile(aDeviceName, GENERIC_READ|GENERIC_WRITE, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	errCode = GetLastError();
+
+	if (iDriverContext == INVALID_HANDLE_VALUE)
+	{
+		OutputDebugString(_T("ConnectToDriver Failed .\n"));
+		return errCode;
+	}
+
+	return errCode;
+}
+
+int SSDTHOOKMidware::DisconnectToDriver()
+{
+	int errCode = ERROR_SUCCESS;
+
+	// 连接到驱动，发送开始工作的命令，调用DeviceIoControl
+	CloseHandle((HANDLE)iDriverContext);
+	iDriverContext = NULL;
+
+	return errCode;
+}
+
+int SSDTHOOKMidware::StartSSDTHOOK()
+{
+	int errCode = ERROR_SUCCESS;
+
+	if (!iDriverContext)
+		return ERROR_DEVICE_NOT_AVAILABLE;
+
+	BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_START_WORKING, NULL, 0, NULL, 0, NULL, NULL);
+	if (!ret)
+		errCode = GetLastError();
+
+	return errCode;
+}
+
+int SSDTHOOKMidware::StopSSDTHOOK()
+{
+	int errCode = ERROR_SUCCESS;
+
+	if (!iDriverContext)
+		return ERROR_DEVICE_NOT_AVAILABLE;
+
+	BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_STOP_WORKING, NULL, 0, NULL, 0, NULL, NULL);
+	if (!ret)
+		errCode = GetLastError();
+
+	return errCode;
+}
+
+int SSDTHOOKMidware::AddSSDTHOOKProcess(int aHookType, DWORD aProcessId)
+{
+	int errCode = ERROR_SUCCESS;
+
+	if (!iDriverContext)
+		return ERROR_DEVICE_NOT_AVAILABLE;
+
+	unsigned char inputBuffer[128] = {0};
+	unsigned char outputBuffer[128] = {0};
+	DWORD returnLength = 0;
+
+	_ultoa_s(aProcessId, (char*)inputBuffer, 128, 10);
+
+	// 连接到驱动，发送开始工作的命令，调用DeviceIoControl
+	if ((aHookType & TerminateProcessProtect) == TerminateProcessProtect)
+	{
+		BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_INSERT_PROTECT_PROCESS, inputBuffer, 128, &outputBuffer, 120, &returnLength, NULL);
+		if (ret)
+			errCode |= TerminateProcessProtect;
+	}
+
+	if ((aHookType & QueryProcessInfoProtect) == QueryProcessInfoProtect)
+	{
+		BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_INSERT_HIDE_PROCESS, inputBuffer, 128, &outputBuffer, 120, &returnLength, NULL);
+		if (ret)
+			errCode |= QueryProcessInfoProtect;
+	}
+
+	return errCode;
+}
+
+int SSDTHOOKMidware::RemoveSSDTHOOKProcess(int aHookType, DWORD aProcessId)
+{
+	int errCode = ERROR_SUCCESS;
+
+	if (!iDriverContext)
+		return ERROR_DEVICE_NOT_AVAILABLE;
+
+	unsigned char inputBuffer[128] = {0};
+	unsigned char outputBuffer[128] = {0};
+	DWORD returnLength = 0;
+
+	_ultoa_s(aProcessId, (char*)inputBuffer, 128, 10);
+
+	// 连接到驱动，发送开始工作的命令，调用DeviceIoControl
+	if ((aHookType & TerminateProcessProtect) == TerminateProcessProtect)
+	{
+		BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_REMOVE_PROTECT_PROCESS, inputBuffer, 128, &outputBuffer, 120, &returnLength, NULL);
+		if (ret)
+			errCode |= TerminateProcessProtect;
+	}
+
+	if ((aHookType & QueryProcessInfoProtect) == QueryProcessInfoProtect)
+	{
+		BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_REMOVE_HIDE_PROCESS, inputBuffer, 128, &outputBuffer, 120, &returnLength, NULL);
+		if (ret)
+			errCode |= QueryProcessInfoProtect;
+	}
+
+	return errCode;
 }

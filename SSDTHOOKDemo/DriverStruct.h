@@ -15,22 +15,31 @@ extern "C"
 #include <stdlib.h>
 #include <WINDEF.H>
 
-extern BOOL global_WorkState;
-extern KMUTEX global_Synchronism;
+#define INITDATA data_seg("INIT")
+#define LOCKEDDATA data_seg()
+#define PAGEDDATA data_seg("PAGE")
 
+#define INITCODE code_seg("INIT")
+#define LOCKEDCODE code_seg()
+#define PAGEDCODE code_seg("PAGE")
+
+extern BOOL global_WorkState;		// 全局变量：驱动工作状态
+extern KMUTEX global_Synchronism;	// 全局变量：工作状态同步对象
+
+// 驱动入口函数
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING  pRegistryPath);
 
+// 驱动卸载函数
 VOID DriverUnload(IN PDRIVER_OBJECT pDriverObject);
 
-/**
- * 派遣函数
- */
+// 派遣函数
 NTSTATUS CreateDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp);
 NTSTATUS CloseDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp);
 NTSTATUS ReadDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp);
 NTSTATUS WriteDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp);
 NTSTATUS DeviceIoControlDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp);
 
+// 常规派遣函数，直接将IRP传到下一层
 NTSTATUS GeneralDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp);
 
 

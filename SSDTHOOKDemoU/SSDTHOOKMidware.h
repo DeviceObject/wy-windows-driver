@@ -3,6 +3,7 @@
 
 #include <tchar.h>
 #include <WINDOWS.H>
+#include <winioctl.h>
 
 /**
  * 文件说明：
@@ -13,6 +14,24 @@
  * 日期：
  *	2013-01-17
  */
+
+#define SYMBO_LINK_NAME_T	_T("\\\\.\\SSDTHOOKDemo")
+
+// SSDT驱动类型
+#define	SSDT_DEVICE_TYPE				FILE_DEVICE_UNKNOWN
+
+//定义用于应用程序和驱动程序通信的宏，这里使用的是缓冲区读写方式
+#define IO_START_WORKING				(ULONG) CTL_CODE(SSDT_DEVICE_TYPE, 0x701, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+#define IO_STOP_WORKING					(ULONG) CTL_CODE(SSDT_DEVICE_TYPE, 0x702, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+#define	IO_INSERT_HIDE_PROCESS			(ULONG) CTL_CODE(SSDT_DEVICE_TYPE, 0x801, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define	IO_REMOVE_HIDE_PROCESS			(ULONG) CTL_CODE(SSDT_DEVICE_TYPE, 0x802, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define	IO_INSERT_PROTECT_PROCESS		(ULONG) CTL_CODE(SSDT_DEVICE_TYPE, 0x803, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define	IO_REMOVE_PROTECT_PROCESS		(ULONG) CTL_CODE(SSDT_DEVICE_TYPE, 0x804, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+
+// 这里定义系统保护类型，可进行位运算组合添加
+#define TerminateProcessProtect		0x00000001
+#define QueryProcessInfoProtect		0x00000010
 
 class SSDTHOOKMidware
 {
@@ -57,12 +76,22 @@ public:
 	int DisconnectToDriver();
 
 	/**
+	 * 启动工作状态
+	 */
+	int StartSSDTHOOK();
+
+	/**
+	 * 停止工作状态
+	 */
+	int StopSSDTHOOK();
+
+	/**
 	 * 增加挂钩进程
 	 * 参数：
 	 *	@aHookType		挂钩类型
 	 *	@aProcessId		进程ID
 	 * 返回值：
-	 *	0 - 添加成功
+	 *	成功返回相应的位
 	 */
 	int AddSSDTHOOKProcess(int aHookType, DWORD aProcessId);
 
@@ -72,7 +101,7 @@ public:
 	 *	@aHookType		挂钩类型
 	 *	@aProcessId		进程ID
 	 * 返回值：
-	 *	0 - 移除成功
+	 *	成功返回相应的位
 	 */
 	int RemoveSSDTHOOKProcess(int aHookType, DWORD aProcessId);
 

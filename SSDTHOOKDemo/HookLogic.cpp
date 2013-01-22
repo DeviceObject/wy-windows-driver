@@ -1,4 +1,5 @@
 #include "HookLogic.h"
+#include "DriverStruct.h"
 
 
 ULONG global_ProtectedProcessIds[MAX_SSDT_HOOK_PROCESS_ID_NUMBER] = {0};
@@ -12,6 +13,7 @@ KMUTEX global_HidedProcessIdsSynchronism;
 NTQUERYSYSTEMINFORMATION pOldNtQuerySystemInformation = NULL;
 NTTERMINATEPROCESS pOldNtTerminateProcess = NULL;
 
+
 VOID InitializeSynchronObjects()
 {
 	KeInitializeMutex(&global_ProtectedProcessIdsSynchronism, 0);
@@ -23,7 +25,9 @@ LONG CheckProcessIsInProtectList(ULONG aProcessId)
 	if (aProcessId == 0)
 		return -1;
 
-	KeWaitForSingleObject(&global_ProtectedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+	LARGE_INTEGER li;
+	li.QuadPart = 100*1000*1000*1000*1;
+	KeWaitForSingleObject(&global_ProtectedProcessIdsSynchronism, Executive, KernelMode, FALSE, &li);
 
 	for (ULONG i = 0; (i < global_ProtectedProcessIdsLength && i < MAX_SSDT_HOOK_PROCESS_ID_NUMBER); ++i)
 	{
@@ -44,7 +48,9 @@ LONG CheckProcessIsInHideList(ULONG aProcessId)
 	if (aProcessId == 0)
 		return -1;
 
-	KeWaitForSingleObject(&global_HidedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+	LARGE_INTEGER li;
+	li.QuadPart = 100*1000*1000*1000*1;
+	KeWaitForSingleObject(&global_HidedProcessIdsSynchronism, Executive, KernelMode, FALSE, &li);
 
 	for (ULONG i = 0; (i < global_HidedProcessIdsLength && i < MAX_SSDT_HOOK_PROCESS_ID_NUMBER); ++i)
 	{
@@ -64,7 +70,9 @@ BOOLEAN InsertProcessInProtectList(ULONG aProcessId)
 {
 	if (CheckProcessIsInProtectList(aProcessId) == -1 && global_ProtectedProcessIdsLength < MAX_SSDT_HOOK_PROCESS_ID_NUMBER)
 	{
-		KeWaitForSingleObject(&global_ProtectedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+		LARGE_INTEGER li;
+		li.QuadPart = 100*1000*1000*1000*1;
+		KeWaitForSingleObject(&global_ProtectedProcessIdsSynchronism, Executive, KernelMode, FALSE, &li);
 		global_ProtectedProcessIds[global_ProtectedProcessIdsLength++] = aProcessId;
 		KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 
@@ -80,7 +88,9 @@ BOOLEAN RemoveProcessFromProtectList(ULONG aProcessId)
 
 	if (index != -1)
 	{
-		KeWaitForSingleObject(&global_ProtectedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+		LARGE_INTEGER li;
+		li.QuadPart = 100*1000*1000*1000*1;
+		KeWaitForSingleObject(&global_ProtectedProcessIdsSynchronism, Executive, KernelMode, FALSE, &li);
 		global_ProtectedProcessIds[index] = global_ProtectedProcessIds[global_ProtectedProcessIdsLength--];
 		KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 
@@ -94,7 +104,9 @@ BOOLEAN InsertProcessInHideList(ULONG aProcessId)
 {
 	if (CheckProcessIsInHideList(aProcessId) == -1 && global_HidedProcessIdsLength < MAX_SSDT_HOOK_PROCESS_ID_NUMBER)
 	{
-		KeWaitForSingleObject(&global_HidedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+		LARGE_INTEGER li;
+		li.QuadPart = 100*1000*1000*1000*1;
+		KeWaitForSingleObject(&global_HidedProcessIdsSynchronism, Executive, KernelMode, FALSE, &li);
 		global_HidedProcessIds[global_HidedProcessIdsLength++] = aProcessId;
 		KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 
@@ -110,7 +122,9 @@ BOOLEAN RemoveProcessFromHideList(ULONG aProcessId)
 
 	if (index != -1)
 	{
-		KeWaitForSingleObject(&global_HidedProcessIdsSynchronism, Executive, KernelMode, FALSE, 100*1000*1000*1000*1);
+		LARGE_INTEGER li;
+		li.QuadPart = 100*1000*1000*1000*1;
+		KeWaitForSingleObject(&global_HidedProcessIdsSynchronism, Executive, KernelMode, FALSE, &li);
 		global_HidedProcessIds[index] = global_HidedProcessIds[global_HidedProcessIdsLength--];
 		KeReleaseMutex(&global_HidedProcessIdsSynchronism, FALSE);
 
@@ -129,20 +143,28 @@ NTSTATUS HookNtQuerySystemInformation(
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
+	// 获取原始系统调用地址
 	pOldNtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)oldSysServiceAddr[SYSCALL_INDEX(ZwQuerySystemInformation)];
 
-	status = pOldNtQuerySystemInformation(SystemInformationClass, 
-		SystemInformation, SystemInformationLength, ReturnLength);
+	status = pOldNtQuerySystemInformation(SystemInformationClass, SystemInformation, SystemInformationLength, ReturnLength);
 
+	// 调用失败
 	if (!NT_SUCCESS(status))
-	{
 		return status;
-	}
 
+	// 系统信息类型不是SystemProcessInformation
 	if (SystemProcessInformation != SystemInformationClass)
-	{
 		return status;
-	}
+
+	// 如果当前系统不是工作状态，调用完原函数后直接返回
+	LARGE_INTEGER li;
+	li.QuadPart = 100 * 1000 * 1000* 1;
+	KeWaitForSingleObject(&global_Synchronism, Executive, KernelMode, FALSE, &li);
+	BOOLEAN workingState = global_WorkState;
+	KeReleaseMutex(&global_Synchronism, FALSE);
+
+	if (!workingState)
+		return status;
 
 	PSYSTEM_PROCESS_INFORMATION pPrevProcessInfo = NULL;
 	PSYSTEM_PROCESS_INFORMATION pCurrProcessInfo = (PSYSTEM_PROCESS_INFORMATION)SystemInformation;
@@ -205,12 +227,21 @@ NTSTATUS HookNtTerminateProcess( __in_opt HANDLE ProcessHandle, __in NTSTATUS Ex
 {
 	PEPROCESS pEProcess = NULL;
 
+	// 如果当前系统不是工作状态，直接调用原函数
+	LARGE_INTEGER li;
+	li.QuadPart = 100 * 1000 * 1000* 1;
+	KeWaitForSingleObject(&global_Synchronism, Executive, KernelMode, FALSE, &li);
+	BOOLEAN workingState = global_WorkState;
+	KeReleaseMutex(&global_Synchronism, FALSE);
+
+	if (!workingState)
+		goto TERMINATE_PROCESS;
+
 	// 通过进程句柄来获得该进程所对应的FileObject对象，由于这里是进程对象，获得的就是EPROCESS对象
 	NTSTATUS status = ObReferenceObjectByHandle(ProcessHandle, FILE_READ_DATA, NULL, KernelMode, (PVOID *)&pEProcess, NULL);
+
 	if (!NT_SUCCESS(status))
-	{
 		return status;
-	}
 
 	// 保存SSDT中原来的NtTerminateProcess地址
 	pOldNtTerminateProcess = (NTTERMINATEPROCESS)oldSysServiceAddr[SYSCALL_INDEX(ZwTerminateProcess)];
@@ -234,6 +265,7 @@ NTSTATUS HookNtTerminateProcess( __in_opt HANDLE ProcessHandle, __in NTSTATUS Ex
 		}
 	}
 
+TERMINATE_PROCESS:
 	// 非保护进程，则调用真正的NtTerminalProcess结束进程
 	status = pOldNtTerminateProcess(ProcessHandle, ExitStatus);
 
