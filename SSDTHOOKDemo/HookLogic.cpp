@@ -234,6 +234,9 @@ NTSTATUS HookNtTerminateProcess( __in_opt HANDLE ProcessHandle, __in NTSTATUS Ex
 	BOOLEAN workingState = global_WorkState;
 	KeReleaseMutex(&global_Synchronism, FALSE);
 
+	// 保存SSDT中原来的NtTerminateProcess地址
+	pOldNtTerminateProcess = (NTTERMINATEPROCESS)oldSysServiceAddr[SYSCALL_INDEX(ZwTerminateProcess)];
+
 	if (!workingState)
 		goto TERMINATE_PROCESS;
 
@@ -242,9 +245,6 @@ NTSTATUS HookNtTerminateProcess( __in_opt HANDLE ProcessHandle, __in NTSTATUS Ex
 
 	if (!NT_SUCCESS(status))
 		return status;
-
-	// 保存SSDT中原来的NtTerminateProcess地址
-	pOldNtTerminateProcess = (NTTERMINATEPROCESS)oldSysServiceAddr[SYSCALL_INDEX(ZwTerminateProcess)];
 
 	// 通过该函数可以得到进程名和进程Id
 	// 该函数是未文档化的导出函数（可参考WRK），需要自己声明

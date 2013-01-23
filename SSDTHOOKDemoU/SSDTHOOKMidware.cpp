@@ -180,6 +180,9 @@ int SSDTHOOKMidware::DisconnectToDriver()
 {
 	int errCode = ERROR_SUCCESS;
 
+	if (!iDriverContext)
+		return ERROR_DEVICE_NOT_AVAILABLE;
+
 	// 连接到驱动，发送开始工作的命令，调用DeviceIoControl
 	CloseHandle((HANDLE)iDriverContext);
 	iDriverContext = NULL;
@@ -194,7 +197,11 @@ int SSDTHOOKMidware::StartSSDTHOOK()
 	if (!iDriverContext)
 		return ERROR_DEVICE_NOT_AVAILABLE;
 
-	BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_START_WORKING, NULL, 0, NULL, 0, NULL, NULL);
+	unsigned char inputBuffer[512] = {0};
+	unsigned char outputBuffer[512] = {0};
+	DWORD returnLength = 0;
+
+	BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_START_WORKING, inputBuffer, 512, outputBuffer, 512, &returnLength, NULL);
 	if (!ret)
 		errCode = GetLastError();
 
@@ -208,7 +215,11 @@ int SSDTHOOKMidware::StopSSDTHOOK()
 	if (!iDriverContext)
 		return ERROR_DEVICE_NOT_AVAILABLE;
 
-	BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_STOP_WORKING, NULL, 0, NULL, 0, NULL, NULL);
+	unsigned char inputBuffer[512] = {0};
+	unsigned char outputBuffer[512] = {0};
+	DWORD returnLength = 0;
+
+	BOOL ret = DeviceIoControl((HANDLE)iDriverContext, IO_STOP_WORKING, inputBuffer, 512, outputBuffer, 512, &returnLength, NULL);
 	if (!ret)
 		errCode = GetLastError();
 

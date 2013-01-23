@@ -55,6 +55,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 
 	// 初始化同步对象，这里使用的是互斥体
 	KeInitializeMutex(&global_Synchronism, 0);
+	InitializeSynchronObjects();
 
 	return status;
 }
@@ -76,6 +77,8 @@ VOID DriverUnload(IN PDRIVER_OBJECT pDriverObject)
 
 NTSTATUS GeneralDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 {
+	PAGED_CODE();
+
 	// 常规派发函数，直接将IRP传到下一层
 	pIrp->IoStatus.Status = STATUS_NOT_SUPPORTED;
 	pIrp->IoStatus.Information = 0;
@@ -87,6 +90,8 @@ NTSTATUS GeneralDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 
 NTSTATUS CreateDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 {
+	PAGED_CODE();
+
 	pIrp->IoStatus.Status = STATUS_SUCCESS;
 	pIrp->IoStatus.Information = 0;
 	IoCompleteRequest(pIrp, IO_NO_INCREMENT);
@@ -96,6 +101,8 @@ NTSTATUS CreateDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 
 NTSTATUS CloseDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 {
+	PAGED_CODE();
+
 	pIrp->IoStatus.Status = STATUS_SUCCESS;
 	pIrp->IoStatus.Information = 0;
 	IoCompleteRequest(pIrp, IO_NO_INCREMENT);
@@ -105,6 +112,8 @@ NTSTATUS CloseDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 
 NTSTATUS ReadDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 {
+	PAGED_CODE();
+
 	NTSTATUS status = STATUS_NOT_SUPPORTED;
 
 	return status;
@@ -112,6 +121,8 @@ NTSTATUS ReadDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 
 NTSTATUS WriteDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 {
+	PAGED_CODE();
+
 	NTSTATUS status = STATUS_NOT_SUPPORTED;
 
 	return status;
@@ -119,6 +130,8 @@ NTSTATUS WriteDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 
 NTSTATUS DeviceIoControlDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)
 {
+	PAGED_CODE();
+
 	NTSTATUS status = STATUS_SUCCESS;
 
 	PIO_STACK_LOCATION pIoStackLocation = IoGetCurrentIrpStackLocation(pIrp);

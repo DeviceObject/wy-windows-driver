@@ -38,7 +38,7 @@ VOID BackupSysServicesTable()
 
 	for (i = 0; (i < KeServiceDescriptorTable->ntoskrnl.NumberOfService) && (i < MAX_SYSTEM_SERVICE_NUMBER); ++i)
 	{
-		oldSysServiceAddr[i] = KeServiceDescriptorTable->ntoskrnl.ServiceCounterTableBase[i];
+		oldSysServiceAddr[i] = KeServiceDescriptorTable->ntoskrnl.ServiceTableBase[i];
 
 		KdPrint(("\\Function Information { Number: 0x%04X , Address: %08X}", i, oldSysServiceAddr[i]));
 	}
