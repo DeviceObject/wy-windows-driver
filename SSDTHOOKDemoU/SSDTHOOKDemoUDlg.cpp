@@ -361,6 +361,8 @@ void CSSDTHOOKDemoUDlg::OnBnClickedBtnConnect()
 	if (errCode != 0)
 		MessageBox(L"连接到驱动失败！", L"错误", MB_OK|MB_ICONERROR);
 
+	// 连接成功后可以将自己的进程传入驱动白名单列表，驱动里面暂时没有实现，这里也先不实现
+
 	return ;
 }
 

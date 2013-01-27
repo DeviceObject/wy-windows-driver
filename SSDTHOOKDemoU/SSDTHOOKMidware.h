@@ -70,6 +70,8 @@ public:
 	 */
 	int StopSSDTHOOKDriver(TCHAR *aServiceName);
 
+public:
+
 	/**
 	 * 连接到驱动设备对象
 	 * 参数：

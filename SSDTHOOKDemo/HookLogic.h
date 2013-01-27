@@ -27,6 +27,11 @@ extern ULONG global_HidedProcessIds[MAX_SSDT_HOOK_PROCESS_ID_NUMBER];
 extern ULONG global_HidedProcessIdsLength;
 extern KMUTEX global_HidedProcessIdsSynchronism;
 
+// 白名单列表
+extern ULONG global_WhiteListProcessIds[MAX_SSDT_HOOK_PROCESS_ID_NUMBER];
+extern ULONG global_WhiteListProcessIdsLength;
+extern KMUTEX global_WhiteListProcessIdsSynchronism;
+
 VOID InitializeSynchronObjects();
 
 LONG CheckProcessIsInProtectList(ULONG aProcessId);
