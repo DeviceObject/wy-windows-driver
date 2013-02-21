@@ -7,6 +7,7 @@ extern "C"
 #endif // __cplusplus
 
 #include "SSDTHook.h"
+#include "ProcessInfo.h"
 #include "ProjectPublic.h"
 #include <WINDEF.H>
 

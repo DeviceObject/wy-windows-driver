@@ -45,6 +45,9 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT pDriverObject, IN PUNICODE_STRING pRegist
 	status = IoCreateSymbolicLink(&symboLinkName, &deviceName);
 	pDeviceObject->Flags &= ~DO_DEVICE_INITIALIZING;
 
+	// 初始化链表
+	InitializeProcessList();
+
 	// 这里是重点！
 	// 要开始进行SSDT HOOK了
 	BackupSysServicesTable();
@@ -73,6 +76,9 @@ VOID DriverUnload(IN PDRIVER_OBJECT pDriverObject)
 	// 解除SSDT HOOK
 	UnInstallSysServiceHook((ULONG)ZwQuerySystemInformation);
 	UnInstallSysServiceHook((ULONG)ZwTerminateProcess);
+
+	// 销毁链表
+	DistroyProcessList();
 }
 
 NTSTATUS GeneralDispatch(IN PDEVICE_OBJECT pDeviceObject, IN PIRP pIrp)

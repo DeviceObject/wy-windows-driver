@@ -68,6 +68,13 @@ LONG CheckProcessIsInHideList(ULONG aProcessId)
 
 BOOLEAN InsertProcessInProtectList(ULONG aProcessId)
 {
+	// 链表操作，添加相应的项
+	PMARKED_PROCESS pMarkedProcess = AllocElement();
+	if (pMarkedProcess)
+	{
+		pMarkedProcess->ProcessId = aProcessId;
+		pMarkedProcess->ProcessProtectFlag1 |= TerminateProcessProtect;
+	}
 	if (CheckProcessIsInProtectList(aProcessId) == -1 && global_ProtectedProcessIdsLength < MAX_SSDT_HOOK_PROCESS_ID_NUMBER)
 	{
 		LARGE_INTEGER li;
