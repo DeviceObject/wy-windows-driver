@@ -105,8 +105,8 @@ FLT_REGISTRATION g_FltRegistration = {
 	DriverUnload,					// 卸载例程
 	DriverInstanceSetup,			// 实例加载例程
 	DriverInstanceQueryTeardown,	// 不知道干嘛用的，看字面意思是查询实例拆卸
-	DriverInstanceTeardownStart,	// 实例拆卸开始
-	DriverInstanceTeardownComplete,	// 实例拆卸完成
+	NULL,							// 实例拆卸开始
+	NULL,							// 实例拆卸完成
 	NULL,							// 这3个NULL也不知道是干嘛的
 	NULL,
 	NULL
@@ -229,9 +229,6 @@ NTSTATUS DriverInstanceSetup(__in PCFLT_RELATED_OBJECTS FltObjects, __in FLT_INS
 	instanceContext->iInstance = FltObjects->Instance;
 
 	// 设置实例上下文
-	DbgPrint("wyFileSysFlt.sys : DriverInstanceSetup -> Setting instance context %p for volume \"%wZ\" (Volume = %p, Instance = %p)\n",
-		instanceContext, &instanceContext->iVolumeName, FltObjects->Volume, FltObjects->Instance);
-
 	status = FltSetInstanceContext(FltObjects->Instance, FLT_SET_CONTEXT_KEEP_IF_EXISTS, instanceContext, NULL);
 	if (!NT_SUCCESS(status))
 	{
@@ -364,7 +361,7 @@ FLT_PREOP_CALLBACK_STATUS FSFPreCreate(__inout PFLT_CALLBACK_DATA Data, __in PCF
 
 	// Do nothing ...
 	PFLT_FILE_NAME_INFORMATION fileNameInfo = NULL;
-	NTSTATUS status = FltGetFileNameInformation(Data, FLT_FILE_NAME_NORMALIZED |	FLT_FILE_NAME_QUERY_DEFAULT, &fileNameInfo);
+	NTSTATUS status = FltGetFileNameInformation(Data, FLT_FILE_NAME_NORMALIZED | FLT_FILE_NAME_QUERY_DEFAULT, &fileNameInfo);
 	if (!NT_SUCCESS(status))
 	{
 		return FLT_PREOP_SUCCESS_WITH_CALLBACK;
