@@ -101,7 +101,7 @@ STARTUP_SSDTHOOK_DRIVER:
 	if (NULL == hService)
 	{
 		errCode = GetLastError();
-		OutputDebugString(_T("StopSSDTHOOKDriver Step - 2 : OpenService failed .\n"));
+		CloseServiceHandle(hSCManager);
 		return errCode;
 	}
 
@@ -109,13 +109,13 @@ STARTUP_SSDTHOOK_DRIVER:
 	if (!ret)
 	{
 		errCode = GetLastError();
-		OutputDebugString(_T("RunSSDTHOOKDriver Step - 3 : Start Service failed .\n"));
 		CloseServiceHandle(hService);
 		CloseServiceHandle(hSCManager);
 		return errCode;
 	}
 
-	OutputDebugString(_T("RunSSDTHOOKDriver Run Service succeed .\n"));
+	CloseServiceHandle(hService);
+	CloseServiceHandle(hSCManager);
 	return errCode;
 }
 

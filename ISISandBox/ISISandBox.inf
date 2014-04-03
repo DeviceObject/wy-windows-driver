@@ -1,0 +1,104 @@
+;;;
+;;; Simulate Reparse File System Filter Driver Sample
+;;;
+;;;
+;;; Copyright (c) 1999 - 2001, Microsoft Corporation
+;;;
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = "ActivityMonitor"                         ;This is determined by the work this filter driver does
+ClassGuid   = {51778174-EC18-4cb8-96BA-05937A18A9D7}
+Provider    = %Msft%
+DriverVer   = 01/01/2004,1.0.0.1
+CatalogFile = ISISandBox.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+ISISandBox.DriverFiles = 12                        ;%windir%\system32\drivers
+
+[SourceDisksNames]
+1 = %Disk1%
+
+[SourceDisksFiles]
+ISISandBox.sys = 1
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall]
+OptionDesc          = %ISISandBoxServiceDesc%
+CopyFiles           = ISISandBox.DriverFiles
+
+[DefaultInstall.Services]
+AddService          = %ISISandBoxServiceName%,,ISISandBox.Service
+
+;;
+;; Default uninstall sections
+;;
+
+[DefaultUninstall]
+DelFiles   = ISISandBox.DriverFiles
+DelReg     = ISISandBox.DelRegistry
+
+
+[DefaultUninstall.Services]
+DelService = ISISandBox,0x204
+
+;
+; Services Section
+;
+
+[ISISandBox.Service]
+DisplayName      = %ISISandBoxServiceName%
+Description      = %ISISandBoxServiceDesc%
+ServiceBinary    = %12%\ISISandBox.sys          ;%windir%\system32\drivers\simrep.sys
+Dependencies     = %FltmgrServiceName%          ;FltMgr
+ServiceType      = 2                            ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                            ;SERVICE_DEMAND_START
+ErrorControl     = 1                            ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Activity Monitor"
+AddReg           = ISISandBox.AddRegistry
+
+;
+; Registry Modifications
+;
+
+[ISISandBox.AddRegistry]
+HKR,,%ISISandBoxDebugLevel%,0x00010001,0x1F
+HKR,%RegInstancesSubkeyName%,%RegDefaultInstanceValueName%,0x00000000,%DefaultInstance%
+HKR,%RegInstancesSubkeyName%"\"%Instance1.Name%,%RegAltitudeValueName%,0x00000000,%Instance1.Altitude%
+HKR,%RegInstancesSubkeyName%"\"%Instance1.Name%,%RegFlagsValueName%,0x00010001,%Instance1.Flags%
+
+[ISISandBox.DelRegistry]
+
+;
+; Copy Files
+;
+
+[ISISandBox.DriverFiles]
+ISISandBox.sys
+
+;;
+;; String Section
+;;
+
+[Strings]
+Msft                                = "Microsoft Corporation"
+ISISandBoxServiceDesc    = "ISISandBox File System Filter Driver Sample"
+ISISandBoxServiceName    = "ISISandBox"
+ISISandBoxDebugLevel     = "DebugLevel"
+FltmgrServiceName                   = "FltMgr"
+RegInstancesSubkeyName              = "Instances"
+RegDefaultInstanceValueName         = "DefaultInstance"
+RegAltitudeValueName                = "Altitude"
+RegFlagsValueName                   = "Flags"
+Disk1                               = "ISISandBox Source Media"
+
+;Instances specific information.
+DefaultInstance      = "ISISandBox"
+Instance1.Name       = "ISISandBox"
+Instance1.Altitude   = "371101"
+Instance1.Flags      = 0x0
+
